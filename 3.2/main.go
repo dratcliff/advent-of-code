@@ -51,10 +51,39 @@ func claims() []claim {
 	return claims
 }
 
-func findOverlappingClaimCount(claims []claim) {
-	fabric := make([][]int, 1000)
+func printClaimWithoutOverlap(fabric [][][]string) {
+	unresolvableClaims := make(map[string]bool, 0)
+	for x, _ := range fabric {
+		for y, _ := range fabric[x] {
+			claims := fabric[x][y]
+			if len(claims) > 1 {
+				for _, z := range claims {
+					unresolvableClaims[z] = true
+				}
+			}
+			if len(claims) == 1 {
+				claim := claims[0]
+				_, ok := unresolvableClaims[claim]
+				if !ok || !unresolvableClaims[claim] {
+					unresolvableClaims[claim] = false
+				}
+			}
+		}
+	}
+	for k, v := range unresolvableClaims {
+		if !v {
+			fmt.Println(k)
+		}
+	}
+}
+
+func populateFabricReservations(claims []claim) [][][]string {
+	fabric := make([][][]string, 1000)
 	for i, _ := range fabric {
-		fabric[i] = make([]int, 1000)
+		fabric[i] = make([][]string, 1000)
+		for j, _ := range fabric[i] {
+			fabric[i][j] = make([]string, 0)
+		}
 	}
 
 	for i, _ := range claims {
@@ -66,23 +95,15 @@ func findOverlappingClaimCount(claims []claim) {
 
 		for x := 0; x < w; x++ {
 			for y := 0; y < h; y++ {
-				fabric[l+x][y+t] = fabric[l+x][y+t] + 1
+				fabric[l+x][y+t] = append(fabric[l+x][y+t], c.claimId)
 			}
 		}
 	}
-
-	sum := 0
-	for x := range fabric {
-		for y := range fabric[x] {
-			if fabric[x][y] > 1 {
-				sum = sum + 1
-			}
-		}
-	}
-	fmt.Println(sum)
+	return fabric
 }
 
 func main() {
 	claims := claims()
-	findOverlappingClaimCount(claims)
+	fabric := populateFabricReservations(claims)
+	printClaimWithoutOverlap(fabric)
 }
