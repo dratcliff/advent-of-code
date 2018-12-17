@@ -122,6 +122,7 @@ func printMsgWithSmallestArea(lps []*lightPoint) {
 				minyd = yd
 				print("\033[H\033[2J")
 				printGraphical(lps, maxx, maxy, minx, miny)
+				fmt.Println(i)
 			}
 		}
 	}
