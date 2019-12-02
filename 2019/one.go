@@ -1,13 +1,15 @@
 package main
 
-import "bufio"
-import "os"
-import "fmt"
-import "strconv"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+)
 
-func main() {
+func One() {
 	fmt.Println("hi")
-	f, err := os.Open("input.txt")
+	f, err := os.Open("1.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -17,7 +19,7 @@ func main() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		value, _ := strconv.Atoi(line)
-		for (value/3 -2) >= 0 {
+		for (value/3 - 2) >= 0 {
 			sum = sum + (value/3 - 2)
 			value = (value/3 - 2)
 			fmt.Println(value)
