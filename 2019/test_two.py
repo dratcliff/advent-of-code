@@ -1,7 +1,7 @@
 def file_line_to_int_array(filename):
     my_list = []
     with open(filename) as fp:
-        line = fp.readline()
+        line = fp.readline().rstrip()
         while line:
             entries = str.split(line, ',')
             for e in entries:
