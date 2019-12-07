@@ -70,12 +70,15 @@ func ParseInstruction(input []int, index int) Instruction {
 	return Instruction{opcode, mode1, mode2, mode3, firstParameter, secondParameter, thirdParameter}
 }
 
-func Five(input int) int {
-	s := SingleLineFileToString("5.txt")
-	j := StringToIntArray(s)
+func Five(program []int, inputs []int) int {
+	j := program
 	lastOutput := -1
+	input := inputs[0]
 	for i := 0; i < len(j); {
 		instruction := ParseInstruction(j, i)
+		if i > 0 && len(inputs) > 1 {
+			input = inputs[1]
+		}
 		switch instruction.opcode {
 		case 1:
 			j[instruction.parameter3] = instruction.parameter1 + instruction.parameter2
