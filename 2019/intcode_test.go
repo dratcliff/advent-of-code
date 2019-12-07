@@ -33,30 +33,24 @@ func TestFivePartTwo(t *testing.T) {
 	}
 }
 
-func copySoftware(s []int) []int {
-	s1 := make([]int, len(s))
-	copy(s1, s)
-	return s1
-}
-
 func TestSevenSampleOne(t *testing.T) {
 	s := []int{3, 15, 3, 16, 1002, 16, 10, 16, 1, 16, 15, 15, 4, 15, 99, 0, 0}
 	ampA := NewAmplifier(0, copySoftware(s))
 	ampA.phase = 4
 
-	ampB := NewAmplifier(0, copySoftware(s))
+	ampB := NewAmplifier(0, s)
 	ampB.previousAmp = ampA
 	ampB.phase = 3
 
-	ampC := NewAmplifier(0, copySoftware(s))
+	ampC := NewAmplifier(0, s)
 	ampC.phase = 2
 	ampC.previousAmp = ampB
 
-	ampD := NewAmplifier(0, copySoftware(s))
+	ampD := NewAmplifier(0, s)
 	ampD.phase = 1
 	ampD.previousAmp = ampC
 
-	ampE := NewAmplifier(0, copySoftware(s))
+	ampE := NewAmplifier(0, s)
 	ampE.phase = 0
 	ampE.previousAmp = ampD
 
@@ -108,129 +102,68 @@ func TestSevenPartTwoSample(t *testing.T) {
 	program := []int{3, 26, 1001, 26, -4, 26, 3, 27, 1002, 27, 2, 27, 1, 27, 26,
 		27, 4, 27, 1001, 28, -1, 28, 1005, 28, 6, 99, 0, 0, 5}
 
-	programA := make([]int, len(program))
-	programB := make([]int, len(program))
-	programC := make([]int, len(program))
-	programD := make([]int, len(program))
-	programE := make([]int, len(program))
+	amps := make([]*Amplifier, 5)
 
-	copy(programA, program)
-	copy(programB, program)
-	copy(programC, program)
-	copy(programD, program)
-	copy(programE, program)
-
-	ampA := NewAmplifier(0, programA)
+	ampA := NewAmplifier(0, program)
 	ampA.phase = 9
 	ampA.waiting = true
+	amps[0] = ampA
 
-	ampB := NewAmplifier(ampA.process(), programB)
-	ampB.phase = 8
-	ampB.waiting = true
+	for i := 1; i < 5; i = i + 1 {
+		ampA = NewAmplifier(amps[i-1].process(), program)
+		ampA.phase = 9 - i
+		ampA.waiting = true
+		amps[i] = ampA
+	}
+	amps[4].process()
 
-	ampC := NewAmplifier(ampB.process(), programC)
-	ampC.phase = 7
-	ampC.waiting = true
-
-	ampD := NewAmplifier(ampC.process(), programD)
-	ampD.phase = 6
-	ampD.waiting = true
-
-	ampE := NewAmplifier(ampD.process(), programE)
-	ampE.phase = 5
-	ampE.waiting = true
-
-	ampE.process()
-
-	for ampE.waiting {
-		ampA.input = ampE.lastOutput
-		ampA.process()
-
-		ampB.input = ampA.lastOutput
-		ampB.process()
-
-		ampC.input = ampB.lastOutput
-		ampC.process()
-
-		ampD.input = ampC.lastOutput
-		ampD.process()
-
-		ampE.input = ampD.lastOutput
-		ampE.process()
+	for amps[4].waiting {
+		amps[0].input = amps[4].lastOutput
+		amps[0].process()
+		for i := 1; i < 5; i = i + 1 {
+			amps[i].input = amps[i-1].lastOutput
+			amps[i].process()
+		}
 	}
 
-	if ampE.lastOutput != 139629729 {
-		t.Errorf("Expected 139629729 got %d", ampE.lastOutput)
+	if amps[4].lastOutput != 139629729 {
+		t.Errorf("Expected 139629729 got %d", amps[4].lastOutput)
 	}
 }
 
 func TestSevenPartTwo(t *testing.T) {
 	s := SingleLineFileToString("7.txt")
 	program := StringToIntArray(s)
-
-	programA := make([]int, len(program))
-	programB := make([]int, len(program))
-	programC := make([]int, len(program))
-	programD := make([]int, len(program))
-	programE := make([]int, len(program))
-
-	copy(programA, program)
-	copy(programB, program)
-	copy(programC, program)
-	copy(programD, program)
-	copy(programE, program)
-
-	a := []int{9, 8, 7, 6, 5}
+	phases := []int{9, 8, 7, 6, 5}
 	max := 0
-	p := permutation.New(permutation.IntSlice(a))
+	p := permutation.New(permutation.IntSlice(phases))
 	for p.Next() {
+		amps := make([]*Amplifier, 5)
 
-		copy(programA, program)
-		copy(programB, program)
-		copy(programC, program)
-		copy(programD, program)
-		copy(programE, program)
-
-		ampA := NewAmplifier(0, programA)
-		ampA.phase = a[0]
+		ampA := NewAmplifier(0, program)
+		ampA.phase = phases[0]
 		ampA.waiting = true
+		amps[0] = ampA
 
-		ampB := NewAmplifier(ampA.process(), programB)
-		ampB.phase = a[1]
-		ampB.waiting = true
-
-		ampC := NewAmplifier(ampB.process(), programC)
-		ampC.phase = a[2]
-		ampC.waiting = true
-
-		ampD := NewAmplifier(ampC.process(), programD)
-		ampD.phase = a[3]
-		ampD.waiting = true
-
-		ampE := NewAmplifier(ampD.process(), programE)
-		ampE.phase = a[4]
-		ampE.waiting = true
-
-		ampE.process()
-
-		for ampE.waiting {
-			ampA.input = ampE.lastOutput
-			ampA.process()
-
-			ampB.input = ampA.lastOutput
-			ampB.process()
-
-			ampC.input = ampB.lastOutput
-			ampC.process()
-
-			ampD.input = ampC.lastOutput
-			ampD.process()
-
-			ampE.input = ampD.lastOutput
-			ampE.process()
+		for i := 1; i < 5; i = i + 1 {
+			ampA = NewAmplifier(amps[i-1].process(), program)
+			ampA.phase = phases[i]
+			ampA.waiting = true
+			amps[i] = ampA
 		}
-		if ampE.lastOutput > max {
-			max = ampE.lastOutput
+		amps[4].process()
+
+		for amps[4].waiting {
+			amps[0].input = amps[4].lastOutput
+			amps[0].process()
+			for i := 1; i < 5; i = i + 1 {
+				amps[i].input = amps[i-1].lastOutput
+				amps[i].process()
+			}
+		}
+
+		if amps[4].lastOutput > max {
+			max = amps[4].lastOutput
 		}
 	}
 	if max != 2299406 {

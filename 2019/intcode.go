@@ -131,8 +131,14 @@ func NewAmplifier(input int, software []int) *Amplifier {
 	a := &Amplifier{}
 	a.input = input
 	a.phase = -1
-	a.software = software
+	a.software = copySoftware(software)
 	return a
+}
+
+func copySoftware(s []int) []int {
+	s1 := make([]int, len(s))
+	copy(s1, s)
+	return s1
 }
 
 func Run(computer IntcodeComputer, feedback bool) (int, []int, int) {
