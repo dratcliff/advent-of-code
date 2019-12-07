@@ -4,6 +4,32 @@ import (
 	"fmt"
 )
 
+type Amplifier struct {
+	input      int
+	phase      int
+	software   []int
+	currentPos int
+	waiting    bool
+	lastOutput int
+}
+
+func (a *Amplifier) process() int {
+	// fmt.Println("start", a.input, a.currentPos)
+	phase := a.phase
+	if a.currentPos != 0 {
+		phase = a.input
+	}
+	result, s, i := Five(a.software, []int{phase, a.input}, a.waiting, a.currentPos)
+	a.software = s
+	a.currentPos = i
+	if result != -1 {
+		a.lastOutput = result
+	}
+
+	// fmt.Println("stop", result, i)
+	return result
+}
+
 type Instruction struct {
 	opcode     int
 	mode1      int
@@ -56,6 +82,8 @@ func ParseInstruction(input []int, index int) Instruction {
 	}
 	firstParameter, secondParameter, thirdParameter := 0, 0, 0
 	switch opcode {
+	case 99:
+		return Instruction{99, 0, 0, 0, 0, 0, 0}
 	case 1, 2, 5, 6, 7, 8:
 		firstParameter = input[index+1]
 		if mode1 == 0 {
@@ -66,21 +94,27 @@ func ParseInstruction(input []int, index int) Instruction {
 			secondParameter = input[secondParameter]
 		}
 		thirdParameter = input[index+3]
+		// if mode3 == 0 && (opcode == 5 || opcode == 6) {
+		// thirdParameter = input[thirdParameter]
+		// }
 	}
 	return Instruction{opcode, mode1, mode2, mode3, firstParameter, secondParameter, thirdParameter}
 }
 
-func Five(program []int, inputs []int) int {
+func Five(program []int, inputs []int, feedback bool, index int) (int, []int, int) {
 	j := program
 	lastOutput := -1
 	input := inputs[0]
-	for i := 0; i < len(j); {
+	for i := index; i < len(j); {
 		instruction := ParseInstruction(j, i)
+		// fmt.Println(instruction)
 		if i > 0 && len(inputs) > 1 {
 			input = inputs[1]
 		}
+
 		switch instruction.opcode {
 		case 1:
+			// fmt.Println("1", i, instruction, j)
 			j[instruction.parameter3] = instruction.parameter1 + instruction.parameter2
 		case 2:
 			j[instruction.parameter3] = instruction.parameter1 * instruction.parameter2
@@ -93,12 +127,19 @@ func Five(program []int, inputs []int) int {
 				firstParameter = j[firstParameter]
 			}
 			lastOutput = firstParameter
+			if feedback {
+				// fmt.Println(j[i], j[i+1], j[i+2], j[i+3])
+				i = i + instruction.AdvanceLength()
+				return lastOutput, j, i
+			}
 		case 5:
+			// fmt.Println("5", i, instruction, j)
 			if instruction.parameter1 != 0 {
 				i = instruction.parameter2
 				continue
 			}
 		case 6:
+			// fmt.Println("5", i, instruction, j)
 			if instruction.parameter1 == 0 {
 				i = instruction.parameter2
 				continue
@@ -116,11 +157,13 @@ func Five(program []int, inputs []int) int {
 				j[instruction.parameter3] = 0
 			}
 		case 99:
-			return lastOutput
+			// fmt.Println("halting")
+			return lastOutput, j, -1
 		default:
+			fmt.Printf("unsupported opcode %v\n", instruction)
 			panic("unsupported opcode" + string(instruction.opcode))
 		}
 		i = i + instruction.AdvanceLength()
 	}
-	return lastOutput
+	return lastOutput, j, -1
 }
