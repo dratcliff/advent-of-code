@@ -4,26 +4,52 @@ import (
 	"fmt"
 )
 
+type IntcodeComputer interface {
+	getSoftware() []int
+	getPhase() int
+	getSignal() int
+	getCurrentIndex() int
+}
+
 type Amplifier struct {
-	input      int
-	phase      int
-	software   []int
-	currentPos int
-	waiting    bool
-	lastOutput int
+	input       int
+	phase       int
+	software    []int
+	currentPos  int
+	waiting     bool
+	lastOutput  int
+	previousAmp *Amplifier
+	nextAmp     *Amplifier
+}
+
+func (a *Amplifier) getSoftware() []int {
+	return a.software
+}
+
+func (a *Amplifier) getPhase() int {
+	return a.phase
+}
+
+func (a *Amplifier) getSignal() int {
+	return a.input
+}
+
+func (a *Amplifier) getCurrentIndex() int {
+	return a.currentPos
 }
 
 func (a *Amplifier) process() int {
 	// fmt.Println("start", a.input, a.currentPos)
-	phase := a.phase
-	if a.currentPos != 0 {
-		phase = a.input
+	if a.previousAmp != nil {
+		a.input = a.previousAmp.process()
 	}
-	result, s, i := Five(a.software, []int{phase, a.input}, a.waiting, a.currentPos)
+	result, s, i := Run(a, a.waiting)
 	a.software = s
 	a.currentPos = i
 	if result != -1 {
 		a.lastOutput = result
+	} else {
+		a.waiting = false
 	}
 
 	// fmt.Println("stop", result, i)
@@ -78,7 +104,7 @@ func ParseInstruction(input []int, index int) Instruction {
 	} else if modes == 0 {
 		mode1, mode2, mode3 = 0, 0, 0
 	} else {
-		fmt.Println("modes", modes)
+		// fmt.Println("modes", modes)
 	}
 	firstParameter, secondParameter, thirdParameter := 0, 0, 0
 	switch opcode {
@@ -101,15 +127,27 @@ func ParseInstruction(input []int, index int) Instruction {
 	return Instruction{opcode, mode1, mode2, mode3, firstParameter, secondParameter, thirdParameter}
 }
 
-func Five(program []int, inputs []int, feedback bool, index int) (int, []int, int) {
-	j := program
+func NewAmplifier(input int, software []int) *Amplifier {
+	a := &Amplifier{}
+	a.input = input
+	a.phase = -1
+	a.software = software
+	return a
+}
+
+func Run(computer IntcodeComputer, feedback bool) (int, []int, int) {
+	j := computer.getSoftware()
 	lastOutput := -1
-	input := inputs[0]
+	input := computer.getPhase()
+	if input == -1 {
+		input = computer.getSignal()
+	}
+	index := computer.getCurrentIndex()
 	for i := index; i < len(j); {
 		instruction := ParseInstruction(j, i)
 		// fmt.Println(instruction)
-		if i > 0 && len(inputs) > 1 {
-			input = inputs[1]
+		if i > 0 && computer.getSignal() >= 0 {
+			input = computer.getSignal()
 		}
 
 		switch instruction.opcode {
@@ -119,6 +157,7 @@ func Five(program []int, inputs []int, feedback bool, index int) (int, []int, in
 		case 2:
 			j[instruction.parameter3] = instruction.parameter1 * instruction.parameter2
 		case 3:
+			// fmt.Println("input is", input)
 			outputPosition := j[i+1]
 			j[outputPosition] = input
 		case 4:
@@ -157,7 +196,7 @@ func Five(program []int, inputs []int, feedback bool, index int) (int, []int, in
 				j[instruction.parameter3] = 0
 			}
 		case 99:
-			// fmt.Println("halting")
+			// fmt.Println("halting", j)
 			return lastOutput, j, -1
 		default:
 			fmt.Printf("unsupported opcode %v\n", instruction)
