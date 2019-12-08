@@ -16,26 +16,6 @@ def test_get_layers():
     for layer in layers:
         print(layer)
 
-def test_get_pixels():
-    layers = get_layers("0222112222120000", height=2, width=2)
-    layers_by_row = []
-    for layer in layers:
-        rows = []
-        for row in get_rows(layer, 2):
-            rows.append(row)
-        layers_by_row.append(rows)
-    for layer in layers_by_row:
-        print(layer)
-    
-    full_image = [['2', '2'], ['2', '2']]
-    for lidx, lval in enumerate(layers_by_row):
-        for ridx, rval in enumerate(lval):
-            for pidx, pval in enumerate(rval):
-                if full_image[ridx][pidx] == '2':
-                    if pval != 2:
-                        full_image[ridx][pidx] = pval
-    print(full_image)
-
 def test_part_one():
     lines = getLines("8.txt", False)
     layers = get_layers(lines[0], height=6, width=25)
