@@ -1,16 +1,30 @@
 package main
 
 import (
+	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/gitchander/permutation"
 )
 
 func TestParseInstruction(t *testing.T) {
-	result := ParseInstruction([]int{1002, 0, 0, 0, 0}, 0)
+	amp := NewAmplifier(0, []int{1002, 0, 0, 0})
+	result := amp.ParseInstruction(0)
+	fmt.Println(result)
 	if result.opcode != 2 || result.mode2 != 1 {
-		t.Errorf("Parse instruction failed")
+		t.Errorf("Parse instruction failed %v", result)
 	}
+
+	amp = NewAmplifier(0, []int{2002, 0, 0, 0})
+	result = amp.ParseInstruction(0)
+	fmt.Println(result)
+
+	a := strconv.Itoa(2002)
+	for len(a) != 5 {
+		a = "0" + a
+	}
+	fmt.Println(a)
 }
 
 func TestFivePartOne(t *testing.T) {
@@ -169,4 +183,21 @@ func TestSevenPartTwo(t *testing.T) {
 	if max != 2299406 {
 		t.Errorf("Expected 2299406 got %d", max)
 	}
+}
+
+func TestEightSampleOne(t *testing.T) {
+	amp := NewAmplifier(0, []int{109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99})
+	fmt.Println("test1", amp.process())
+	amp = NewAmplifier(0, []int{1102, 34915192, 34915192, 7, 4, 7, 99, 0})
+	fmt.Println("test2", amp.process())
+	amp = NewAmplifier(0, []int{104, 1125899906842624, 99})
+	fmt.Println("test3", amp.process())
+
+	s := SingleLineFileToString("9.txt")
+	program := StringToIntArray(s)
+	amp = NewAmplifier(1, program)
+
+	result := amp.process()
+	fmt.Println(result)
+	fmt.Println(amp.lastOutput)
 }

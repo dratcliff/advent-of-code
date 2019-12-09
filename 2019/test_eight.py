@@ -25,13 +25,7 @@ def test_part_one():
     assert sorted(counts)[0][1] == 1848
 
 def get_transparent_image(height, width):
-    img = []
-    for i in range(0, height):
-        r = []
-        for j in range(0, width):
-            r.append('2')
-        img.append(r)
-    return img
+    return [['2' for i in range(0, width)] for i in range(0, height)]
 
 def decode_image(transparent_image, layers_by_row):
     img = transparent_image
