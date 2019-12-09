@@ -51,48 +51,22 @@ func (a *Amplifier) getRelativeBase() int {
 	return a.relativeBase
 }
 
-func (a *Amplifier) process() int {
+func (a *Amplifier) process() ProcessResult {
 	// fmt.Println("start", a.input, a.currentPos)
 	if a.previousAmp != nil {
-		a.input = a.previousAmp.process()
+		p := a.previousAmp.process()
+		a.input = p.lastOutput()
 	}
-	result, s, i := Run(a, a.waiting)
-	a.software = s
-	a.currentPos = i
-	if result != -1 {
-		a.lastOutput = result
+	result := Run(a, a.waiting)
+	a.software = result.software
+	a.currentPos = result.index
+	if result.lastOutput() != -1 {
+		a.lastOutput = result.lastOutput()
 	} else {
 		a.waiting = false
 	}
-
 	// fmt.Println("stop", result, i)
 	return result
-}
-
-type Instruction struct {
-	opcode     int
-	mode1      int
-	mode2      int
-	mode3      int
-	parameter1 int
-	parameter2 int
-	parameter3 int
-}
-
-func (i *Instruction) AdvanceLength() int {
-	if i.opcode == 3 || i.opcode == 4 || i.opcode == 9 {
-		return 2
-	}
-	if i.opcode == 1 || i.opcode == 2 || i.opcode == 7 || i.opcode == 8 {
-		return 4
-	}
-	if i.opcode == 99 {
-		return 1
-	}
-	if i.opcode == 5 || i.opcode == 6 {
-		return 3
-	}
-	panic("unsupported opcode")
 }
 
 func (a *Amplifier) ParseInstruction(index int) Instruction {
@@ -104,19 +78,6 @@ func (a *Amplifier) ParseInstruction(index int) Instruction {
 	input := a.software
 	instruction := input[index]
 	opcode := instruction % 100
-	// modes := instruction / 100
-	// mode1, mode2, mode3 := 1, 1, 1
-	// if modes == 1 {
-	// 	mode2, mode3 = 0, 0
-	// } else if modes == 10 {
-	// 	mode1, mode3 = 0, 0
-	// } else if modes == 11 {
-	// 	mode3 = 0
-	// } else if modes == 0 {
-	// 	mode1, mode2, mode3 = 0, 0, 0
-	// } else {
-	// 	// fmt.Println("modes", modes)
-	// }
 	padded := strconv.Itoa(instruction)
 	for len(padded) != 5 {
 		padded = "0" + padded
@@ -151,7 +112,7 @@ func (a *Amplifier) ParseInstruction(index int) Instruction {
 		}
 		thirdParameter = input[index+3]
 		if mode3 == 2 && (opcode != 5 && opcode != 6) {
-			fmt.Println("third parameter", thirdParameter, "relative base", a.relativeBase)
+			// fmt.Println("third parameter", thirdParameter, "relative base", a.relativeBase)
 			thirdParameter = thirdParameter + a.relativeBase
 		}
 	}
@@ -167,13 +128,52 @@ func NewAmplifier(input int, software []int) *Amplifier {
 	return a
 }
 
+type Instruction struct {
+	opcode     int
+	mode1      int
+	mode2      int
+	mode3      int
+	parameter1 int
+	parameter2 int
+	parameter3 int
+}
+
+func (i *Instruction) AdvanceLength() int {
+	if i.opcode == 3 || i.opcode == 4 || i.opcode == 9 {
+		return 2
+	}
+	if i.opcode == 1 || i.opcode == 2 || i.opcode == 7 || i.opcode == 8 {
+		return 4
+	}
+	if i.opcode == 99 {
+		return 1
+	}
+	if i.opcode == 5 || i.opcode == 6 {
+		return 3
+	}
+	panic("unsupported opcode")
+}
+
+type ProcessResult struct {
+	outputs  []int
+	software []int
+	index    int
+}
+
+func (pr *ProcessResult) lastOutput() int {
+	if len(pr.outputs) == 0 {
+		return -1
+	}
+	return (pr.outputs[len(pr.outputs)-1])
+}
+
 func copySoftware(s []int) []int {
 	s1 := make([]int, len(s)*1000)
 	copy(s1, s)
 	return s1
 }
 
-func Run(computer IntcodeComputer, feedback bool) (int, []int, int) {
+func Run(computer IntcodeComputer, feedback bool) ProcessResult {
 	j := computer.getSoftware()
 	lastOutput := -1
 	input := computer.getPhase()
@@ -181,30 +181,25 @@ func Run(computer IntcodeComputer, feedback bool) (int, []int, int) {
 		input = computer.getSignal()
 	}
 	index := computer.getCurrentIndex()
+	outputs := []int{}
 	for i := index; i < len(j); {
 		instruction := computer.ParseInstruction(i)
-		fmt.Println(instruction)
 		if i > 0 && computer.getSignal() >= 0 {
 			input = computer.getSignal()
 		}
 
 		switch instruction.opcode {
-		case 1:
-			// fmt.Println("1", i, instruction, j)
+		case 1: //add
 			j[instruction.parameter3] = instruction.parameter1 + instruction.parameter2
-		case 2:
+		case 2: //mult
 			j[instruction.parameter3] = instruction.parameter1 * instruction.parameter2
-		case 3:
-			fmt.Println("input is", input)
+		case 3: //input
 			outputPosition := j[i+1]
-			fmt.Println("output position", outputPosition)
 			if instruction.mode1 == 2 {
 				outputPosition = outputPosition + computer.getRelativeBase()
-				fmt.Println("output position", outputPosition)
 			}
 			j[outputPosition] = input
-		case 4:
-			// fmt.Println("4", j[i+1], computer.getRelativeBase())
+		case 4: //output
 			firstParameter := j[i+1]
 			if instruction.mode1 == 0 {
 				firstParameter = j[firstParameter]
@@ -212,47 +207,42 @@ func Run(computer IntcodeComputer, feedback bool) (int, []int, int) {
 				firstParameter = j[firstParameter+computer.getRelativeBase()]
 			}
 			lastOutput = firstParameter
-			fmt.Println("lastOutput", lastOutput)
+			outputs = append(outputs, lastOutput)
 			if feedback {
-				// fmt.Println(j[i], j[i+1], j[i+2], j[i+3])
 				i = i + instruction.AdvanceLength()
-				return lastOutput, j, i
+				return ProcessResult{outputs, j, i}
 			}
-		case 5:
-			// fmt.Println("5", i, instruction, j)
+		case 5: //jump non-zero
 			if instruction.parameter1 != 0 {
 				i = instruction.parameter2
 				continue
 			}
-		case 6:
-			// fmt.Println("5", i, instruction, j)
+		case 6: //jump zero
 			if instruction.parameter1 == 0 {
 				i = instruction.parameter2
 				continue
 			}
-		case 7:
+		case 7: //less than zero
 			if instruction.parameter1 < instruction.parameter2 {
-				fmt.Println("7 storing 1")
 				j[instruction.parameter3] = 1
 			} else {
 				j[instruction.parameter3] = 0
 			}
-		case 8:
+		case 8: //is zero
 			if instruction.parameter1 == instruction.parameter2 {
 				j[instruction.parameter3] = 1
 			} else {
 				j[instruction.parameter3] = 0
 			}
-		case 9:
+		case 9: //adjust relative base
 			computer.adjustRelativeBase(instruction.parameter1)
-		case 99:
-			// fmt.Println("halting", j)
-			return lastOutput, j, -1
+		case 99: //halt
+			return ProcessResult{outputs, j, -1}
 		default:
 			fmt.Printf("unsupported opcode %v\n", instruction)
 			panic("unsupported opcode" + string(instruction.opcode))
 		}
 		i = i + instruction.AdvanceLength()
 	}
-	return lastOutput, j, -1
+	return ProcessResult{outputs, j, -1}
 }
