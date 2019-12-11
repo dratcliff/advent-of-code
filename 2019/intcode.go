@@ -7,8 +7,8 @@ import (
 
 type IntcodeComputer interface {
 	getSoftware() []int
-	getPhase() int
-	getSignal() int
+	getPhase() *int
+	getSignal() *int
 	getCurrentIndex() int
 	getRelativeBase() int
 	adjustRelativeBase(int)
@@ -16,12 +16,12 @@ type IntcodeComputer interface {
 }
 
 type Amplifier struct {
-	input        int
-	phase        int
+	input        *int
+	phase        *int
 	software     []int
 	currentPos   int
 	waiting      bool
-	lastOutput   int
+	lastOutput   *int
 	previousAmp  *Amplifier
 	nextAmp      *Amplifier
 	relativeBase int
@@ -31,12 +31,16 @@ func (a *Amplifier) getSoftware() []int {
 	return a.software
 }
 
-func (a *Amplifier) getPhase() int {
-	return a.phase
+func (a *Amplifier) getPhase() *int {
+	r := a.phase
+	a.phase = nil
+	return r
 }
 
-func (a *Amplifier) getSignal() int {
-	return a.input
+func (a *Amplifier) getSignal() *int {
+	r := a.input
+	a.input = nil
+	return r
 }
 
 func (a *Amplifier) getCurrentIndex() int {
@@ -58,11 +62,16 @@ func (a *Amplifier) process() ProcessResult {
 		a.input = p.lastOutput()
 	}
 	result := Run(a, a.waiting)
+	// fmt.Println(result.outputs)
 	a.software = result.software
 	a.currentPos = result.index
-	if result.lastOutput() != -1 {
-		a.lastOutput = result.lastOutput()
-	} else {
+	last := result.lastOutput()
+	lastIndex := result.index
+	// if last != nil && *last != -1 {
+	a.lastOutput = last
+	// fmt.Println(*last)
+	// } else {
+	if lastIndex == -1 {
 		a.waiting = false
 	}
 	// fmt.Println("stop", result, i)
@@ -119,10 +128,16 @@ func (a *Amplifier) ParseInstruction(index int) Instruction {
 	return Instruction{opcode, mode1, mode2, mode3, firstParameter, secondParameter, thirdParameter}
 }
 
-func NewAmplifier(input int, software []int) *Amplifier {
+func NewAmplifier(input int, software []int, phase int) *Amplifier {
 	a := &Amplifier{}
-	a.input = input
-	a.phase = -1
+	a.input = new(int)
+	*a.input = input
+	a.phase = nil
+	if phase != -1 {
+		p := new(int)
+		*p = phase
+		a.phase = p
+	}
 	a.software = copySoftware(software)
 	a.relativeBase = 0
 	return a
@@ -160,11 +175,13 @@ type ProcessResult struct {
 	index    int
 }
 
-func (pr *ProcessResult) lastOutput() int {
+func (pr *ProcessResult) lastOutput() *int {
 	if len(pr.outputs) == 0 {
-		return -1
+		r := -1
+		return &r
 	}
-	return (pr.outputs[len(pr.outputs)-1])
+	r := pr.outputs[len(pr.outputs)-1]
+	return &r
 }
 
 func copySoftware(s []int) []int {
@@ -176,17 +193,11 @@ func copySoftware(s []int) []int {
 func Run(computer IntcodeComputer, feedback bool) ProcessResult {
 	j := computer.getSoftware()
 	lastOutput := -1
-	input := computer.getPhase()
-	if input == -1 {
-		input = computer.getSignal()
-	}
 	index := computer.getCurrentIndex()
 	outputs := []int{}
 	for i := index; i < len(j); {
 		instruction := computer.ParseInstruction(i)
-		if i > 0 && computer.getSignal() >= 0 {
-			input = computer.getSignal()
-		}
+		// fmt.Println("instruction", instruction)
 
 		switch instruction.opcode {
 		case 1: //add
@@ -194,11 +205,28 @@ func Run(computer IntcodeComputer, feedback bool) ProcessResult {
 		case 2: //mult
 			j[instruction.parameter3] = instruction.parameter1 * instruction.parameter2
 		case 3: //input
+			input := computer.getPhase()
+
+			if input == nil {
+				input = computer.getSignal()
+			}
+			// fmt.Println("input", input)
+			if input == nil {
+				// i = i + instruction.AdvanceLength()
+				return ProcessResult{outputs, j, i}
+			}
+			// sig := computer.getSignal()
+			// fmt.Println("sig is", *sig)
+			// if i > 0 && sig != nil && *sig >= 0 {
+			// 	fmt.Println(*sig)
+			// 	input = *sig
+			// }
+			// fmt.Println("input is", *input, i)
 			outputPosition := j[i+1]
 			if instruction.mode1 == 2 {
 				outputPosition = outputPosition + computer.getRelativeBase()
 			}
-			j[outputPosition] = input
+			j[outputPosition] = *input
 		case 4: //output
 			firstParameter := j[i+1]
 			if instruction.mode1 == 0 {
@@ -208,10 +236,11 @@ func Run(computer IntcodeComputer, feedback bool) ProcessResult {
 			}
 			lastOutput = firstParameter
 			outputs = append(outputs, lastOutput)
-			if feedback {
-				i = i + instruction.AdvanceLength()
-				return ProcessResult{outputs, j, i}
-			}
+			// fmt.Println("outputs", outputs)
+			// if feedback {
+			// 	i = i + instruction.AdvanceLength()
+			// 	return ProcessResult{outputs, j, i}
+			// }
 		case 5: //jump non-zero
 			if instruction.parameter1 != 0 {
 				i = instruction.parameter2

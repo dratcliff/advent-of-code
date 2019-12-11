@@ -1,20 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gitchander/permutation"
 )
 
 func TestParseInstruction(t *testing.T) {
-	amp := NewAmplifier(0, []int{1002, 0, 0, 0})
+	amp := NewAmplifier(0, []int{1002, 0, 0, 0}, -1)
 	result := amp.ParseInstruction(0)
 	expected := Instruction{2, 0, 1, 0, 1002, 0, 0}
 	if result != expected {
 		t.Errorf("Expected %v got %v", expected, result)
 	}
 
-	amp = NewAmplifier(0, []int{2002, 0, 0, 0})
+	amp = NewAmplifier(0, []int{2002, 0, 0, 0}, -1)
 	result = amp.ParseInstruction(0)
 	expected = Instruction{2, 0, 2, 0, 2002, 2002, 0}
 	if result != expected {
@@ -25,9 +26,9 @@ func TestParseInstruction(t *testing.T) {
 func TestFivePartOne(t *testing.T) {
 	s := SingleLineFileToString("5.txt")
 	j := StringToIntArray(s)
-	a := NewAmplifier(1, j)
+	a := NewAmplifier(1, j, -1)
 	result := a.process()
-	if result.lastOutput() != 14155342 {
+	if result.lastOutput() == nil || *result.lastOutput() != 14155342 {
 		t.Errorf("Expected 14155342 got %d", result)
 	}
 }
@@ -35,37 +36,32 @@ func TestFivePartOne(t *testing.T) {
 func TestFivePartTwo(t *testing.T) {
 	s := SingleLineFileToString("5.txt")
 	j := StringToIntArray(s)
-	a := NewAmplifier(5, j)
+	a := NewAmplifier(5, j, -1)
 	result := a.process()
-	if result.lastOutput() != 8684145 {
+	if result.lastOutput() == nil || *result.lastOutput() != 8684145 {
 		t.Errorf("Expected 8684145 got %d", result)
 	}
 }
 
 func TestSevenSampleOne(t *testing.T) {
 	s := []int{3, 15, 3, 16, 1002, 16, 10, 16, 1, 16, 15, 15, 4, 15, 99, 0, 0}
-	ampA := NewAmplifier(0, copySoftware(s))
-	ampA.phase = 4
+	ampA := NewAmplifier(0, copySoftware(s), 4)
 
-	ampB := NewAmplifier(0, s)
+	ampB := NewAmplifier(0, s, 3)
 	ampB.previousAmp = ampA
-	ampB.phase = 3
 
-	ampC := NewAmplifier(0, s)
-	ampC.phase = 2
+	ampC := NewAmplifier(0, s, 2)
 	ampC.previousAmp = ampB
 
-	ampD := NewAmplifier(0, s)
-	ampD.phase = 1
+	ampD := NewAmplifier(0, s, 1)
 	ampD.previousAmp = ampC
 
-	ampE := NewAmplifier(0, s)
-	ampE.phase = 0
+	ampE := NewAmplifier(0, s, 0)
 	ampE.previousAmp = ampD
 
 	result := ampE.process()
 
-	if result.lastOutput() != 43210 {
+	if result.lastOutput() == nil || *result.lastOutput() != 43210 {
 		t.Errorf("Expected 43210, got %d", result)
 	}
 }
@@ -76,30 +72,35 @@ func TestSeven(t *testing.T) {
 	program := StringToIntArray(s)
 	a := []int{0, 1, 2, 3, 4}
 	p := permutation.New(permutation.IntSlice(a))
+	firstInput := new(int)
+	*firstInput = 0
 	for p.Next() {
-		ampA := NewAmplifier(0, program)
-		ampA.phase = a[0]
+		// fmt.Println("hi")
+		ampA := NewAmplifier(*firstInput, program, a[0])
+		ampA.process()
+		// fmt.Println("ampA last out", *ampA.lastOutput)
+		ampB := NewAmplifier(*ampA.lastOutput, program, a[1])
+		// ampB.previousAmp = ampA
+		ampB.process()
 
-		ampB := NewAmplifier(0, program)
-		ampB.previousAmp = ampA
-		ampB.phase = a[1]
+		ampC := NewAmplifier(*ampB.lastOutput, program, a[2])
+		// ampC.previousAmp = ampB
+		ampC.process()
 
-		ampC := NewAmplifier(0, program)
-		ampC.phase = a[2]
-		ampC.previousAmp = ampB
+		ampD := NewAmplifier(*ampC.lastOutput, program, a[3])
+		// ampD.previousAmp = ampC
+		ampD.process()
+		// fmt.Println("ampD last out", *ampD.lastOutput)
+		ampE := NewAmplifier(*ampD.lastOutput, program, a[4])
+		// ampE.previousAmp = ampD
+		ampE.process()
 
-		ampD := NewAmplifier(0, program)
-		ampD.phase = a[3]
-		ampD.previousAmp = ampC
-
-		ampE := NewAmplifier(0, program)
-		ampE.phase = a[4]
-		ampE.previousAmp = ampD
-
-		result := ampE.process()
-		if result.lastOutput() > max {
-			max = result.lastOutput()
+		last := ampE.lastOutput
+		// fmt.Println("ampE last out", *last)
+		if last != nil && *last > max {
+			max = *last
 		}
+		// firstInput = last
 	}
 
 	if max != 206580 {
@@ -113,21 +114,20 @@ func TestSevenPartTwoSample(t *testing.T) {
 
 	amps := make([]*Amplifier, 5)
 
-	ampA := NewAmplifier(0, program)
-	ampA.phase = 9
+	ampA := NewAmplifier(0, program, 9)
 	ampA.waiting = true
 	amps[0] = ampA
 
 	for i := 1; i < 5; i = i + 1 {
-		ampA = NewAmplifier(amps[i-1].process().outputs[0], program)
-		ampA.phase = 9 - i
+		ampA = NewAmplifier(amps[i-1].process().outputs[0], program, 9-i)
 		ampA.waiting = true
 		amps[i] = ampA
 	}
 	amps[4].process()
 
-	for amps[4].waiting {
+	for amps[4].waiting && amps[3].waiting && amps[2].waiting && amps[1].waiting && amps[0].waiting {
 		amps[0].input = amps[4].lastOutput
+		fmt.Println(*amps[4].lastOutput)
 		amps[0].process()
 		for i := 1; i < 5; i = i + 1 {
 			amps[i].input = amps[i-1].lastOutput
@@ -135,8 +135,8 @@ func TestSevenPartTwoSample(t *testing.T) {
 		}
 	}
 
-	if amps[4].lastOutput != 139629729 {
-		t.Errorf("Expected 139629729 got %d", amps[4].lastOutput)
+	if amps[4].lastOutput == nil || *amps[4].lastOutput != 139629729 {
+		t.Errorf("Expected 139629729 got %d", *amps[4].lastOutput)
 	}
 }
 
@@ -149,14 +149,12 @@ func TestSevenPartTwo(t *testing.T) {
 	for p.Next() {
 		amps := make([]*Amplifier, 5)
 
-		ampA := NewAmplifier(0, program)
-		ampA.phase = phases[0]
+		ampA := NewAmplifier(0, program, phases[0])
 		ampA.waiting = true
 		amps[0] = ampA
 
 		for i := 1; i < 5; i = i + 1 {
-			ampA = NewAmplifier(amps[i-1].process().outputs[0], program)
-			ampA.phase = phases[i]
+			ampA = NewAmplifier(amps[i-1].process().outputs[0], program, phases[i])
 			ampA.waiting = true
 			amps[i] = ampA
 		}
@@ -171,8 +169,8 @@ func TestSevenPartTwo(t *testing.T) {
 			}
 		}
 
-		if amps[4].lastOutput > max {
-			max = amps[4].lastOutput
+		if amps[4].lastOutput != nil && *amps[4].lastOutput > max {
+			max = *amps[4].lastOutput
 		}
 	}
 	if max != 2299406 {
@@ -180,39 +178,67 @@ func TestSevenPartTwo(t *testing.T) {
 	}
 }
 
-func TestEight(t *testing.T) {
+func TestNine(t *testing.T) {
 	sampleOneInput := []int{109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99}
-	amp := NewAmplifier(0, sampleOneInput)
+	amp := NewAmplifier(0, sampleOneInput, -1)
 
 	for i, v := range amp.process().outputs {
 		if v != sampleOneInput[i] {
 			t.Errorf("should've matched")
 		}
 	}
-	amp = NewAmplifier(0, []int{1102, 34915192, 34915192, 7, 4, 7, 99, 0})
+	amp = NewAmplifier(0, []int{1102, 34915192, 34915192, 7, 4, 7, 99, 0}, -1)
 	r := amp.process()
-	if r.lastOutput() != 1219070632396864 {
+	if r.lastOutput() == nil || *r.lastOutput() != 1219070632396864 {
 		t.Errorf("Expected 1219070632396864 got %d", r.lastOutput())
 	}
-	amp = NewAmplifier(0, []int{104, 1125899906842624, 99})
+	amp = NewAmplifier(0, []int{104, 1125899906842624, 99}, -1)
 	r = amp.process()
 
-	if r.lastOutput() != 1125899906842624 {
+	if r.lastOutput() == nil || *r.lastOutput() != 1125899906842624 {
 		t.Errorf("Expected 1125899906842624 got %d", r.lastOutput())
 	}
 
 	s := SingleLineFileToString("9.txt")
 	program := StringToIntArray(s)
-	amp = NewAmplifier(1, program)
+	amp = NewAmplifier(1, program, -1)
 	r = amp.process()
-	if r.lastOutput() != 4234906522 {
+	if r.lastOutput() == nil || *r.lastOutput() != 4234906522 {
 		t.Errorf("Expected 4234906522 got %d", 4234906522)
 	}
 
-	amp = NewAmplifier(2, program)
+	amp = NewAmplifier(2, program, -1)
 	r = amp.process()
-	if r.lastOutput() != 60962 {
+	if r.lastOutput() == nil || *r.lastOutput() != 60962 {
 		t.Errorf("Expected 60962 got %d", r.lastOutput())
 	}
 
+}
+
+func TestEleven(t *testing.T) {
+	s := SingleLineFileToString("11.txt")
+	program := StringToIntArray(s)
+	amp := NewAmplifier(0, program, -1)
+	amp.waiting = true
+	// fmt.Println("hi")
+	r := amp.process()
+	fmt.Println(r.outputs)
+	i := new(int)
+	*i = 0
+	for j := 0; j < 10; j = j + 1 {
+		amp.input = i
+		r = amp.process()
+		fmt.Println(amp.waiting)
+		fmt.Println(r.outputs)
+	}
+	amp.input = i
+	r = amp.process()
+	fmt.Println(r.outputs)
+	amp.input = i
+	r = amp.process()
+	fmt.Println(r.outputs)
+	// fmt.Println(r)
+	// amp.input = 1
+	// r = amp.process()
+	// fmt.Println(r.outputs)
 }
