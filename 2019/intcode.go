@@ -5,6 +5,27 @@ import (
 	"strconv"
 )
 
+type Direction int
+
+const (
+	Up Direction = iota
+	Down
+	Left
+	Right
+)
+
+type PaintColor int
+
+const (
+	White PaintColor = iota
+	Black
+)
+
+type RobotLocation struct {
+	Position    Point
+	Orientation Direction
+}
+
 type IntcodeComputer interface {
 	getSoftware() []int
 	getPhase() *int

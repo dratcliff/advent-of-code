@@ -220,25 +220,92 @@ func TestEleven(t *testing.T) {
 	program := StringToIntArray(s)
 	amp := NewAmplifier(0, program, -1)
 	amp.waiting = true
-	// fmt.Println("hi")
-	r := amp.process()
-	fmt.Println(r.outputs)
-	i := new(int)
-	*i = 0
-	for j := 0; j < 10; j = j + 1 {
-		amp.input = i
-		r = amp.process()
-		fmt.Println(amp.waiting)
-		fmt.Println(r.outputs)
+
+	onBlack := new(int)
+	*onBlack = 0
+
+	onWhite := new(int)
+	*onWhite = 1
+
+	amp.input = onWhite
+	m := make(map[Point]PaintColor)
+	loc := RobotLocation{Point{0, 0}, Up}
+	i := 0
+	for {
+		r := amp.process()
+		i = i + 1
+		colorOutput := r.outputs[0]
+		if colorOutput == 0 {
+			m[loc.Position] = Black
+		} else {
+			m[loc.Position] = White
+		}
+		directionOutput := r.outputs[1]
+		switch loc.Orientation {
+		case Up:
+			if directionOutput == 0 {
+				loc = RobotLocation{Point{loc.Position.X - 1, loc.Position.Y}, Left}
+			} else {
+				loc = RobotLocation{Point{loc.Position.X + 1, loc.Position.Y}, Right}
+			}
+		case Down:
+			if directionOutput == 0 {
+				loc = RobotLocation{Point{loc.Position.X + 1, loc.Position.Y}, Right}
+			} else {
+				loc = RobotLocation{Point{loc.Position.X - 1, loc.Position.Y}, Left}
+			}
+		case Left:
+			if directionOutput == 0 {
+				loc = RobotLocation{Point{loc.Position.X, loc.Position.Y - 1}, Down}
+			} else {
+				loc = RobotLocation{Point{loc.Position.X, loc.Position.Y + 1}, Up}
+			}
+		case Right:
+			if directionOutput == 0 {
+				loc = RobotLocation{Point{loc.Position.X, loc.Position.Y + 1}, Up}
+			} else {
+				loc = RobotLocation{Point{loc.Position.X, loc.Position.Y - 1}, Down}
+			}
+		}
+		if val, ok := m[loc.Position]; ok {
+			if val == Black {
+				amp.input = onBlack
+			} else {
+				amp.input = onWhite
+			}
+		} else {
+			amp.input = onBlack
+		}
+		if r.index == -1 {
+			break
+		}
 	}
-	amp.input = i
-	r = amp.process()
-	fmt.Println(r.outputs)
-	amp.input = i
-	r = amp.process()
-	fmt.Println(r.outputs)
-	// fmt.Println(r)
-	// amp.input = 1
-	// r = amp.process()
-	// fmt.Println(r.outputs)
+
+	fmt.Println(i, len(m))
+
+	grid := make([][]int, 60)
+	for i, _ := range grid {
+		grid[i] = make([]int, 60)
+	}
+
+	for k, v := range m {
+		i := 0
+		if v == White {
+			i = 1
+		}
+		grid[k.X+10][k.Y+10] = i
+	}
+
+	for _, v := range grid {
+		for _, w := range v {
+			if w == 0 {
+				fmt.Printf("%s", " ")
+			} else {
+				fmt.Printf("%s", "*")
+			}
+			// fmt.Println(w)
+		}
+
+		fmt.Println(len(v))
+	}
 }
