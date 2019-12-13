@@ -5,31 +5,10 @@ import (
 	"strconv"
 )
 
-type Direction int
-
-const (
-	Up Direction = iota
-	Down
-	Left
-	Right
-)
-
-type PaintColor int
-
-const (
-	White PaintColor = iota
-	Black
-)
-
-type RobotLocation struct {
-	Position    Point
-	Orientation Direction
-}
-
 type IntcodeComputer interface {
 	getSoftware() []int
-	getPhase() *int
-	getSignal() *int
+	getPhase() int
+	getSignal() int
 	getCurrentIndex() int
 	getRelativeBase() int
 	adjustRelativeBase(int)
@@ -37,30 +16,37 @@ type IntcodeComputer interface {
 }
 
 type Amplifier struct {
-	input        *int
-	phase        *int
+	inputs       []int
+	phase        int
 	software     []int
 	currentPos   int
 	waiting      bool
-	lastOutput   *int
-	previousAmp  *Amplifier
-	nextAmp      *Amplifier
+	lastOutput   int
 	relativeBase int
+}
+
+func (a *Amplifier) setSingleInput(input int) {
+	a.inputs = []int{input}
 }
 
 func (a *Amplifier) getSoftware() []int {
 	return a.software
 }
 
-func (a *Amplifier) getPhase() *int {
+func (a *Amplifier) getPhase() int {
 	r := a.phase
-	a.phase = nil
+	a.phase = -1
 	return r
 }
 
-func (a *Amplifier) getSignal() *int {
-	r := a.input
-	a.input = nil
+func (a *Amplifier) getSignal() int {
+	if len(a.inputs) == 0 {
+		return -1
+	}
+	r := a.inputs[0]
+	copy(a.inputs[0:], a.inputs[1:])
+	a.inputs[len(a.inputs)-1] = -1
+	a.inputs = a.inputs[:len(a.inputs)-1]
 	return r
 }
 
@@ -78,10 +64,6 @@ func (a *Amplifier) getRelativeBase() int {
 
 func (a *Amplifier) process() ProcessResult {
 	// fmt.Println("start", a.input, a.currentPos)
-	if a.previousAmp != nil {
-		p := a.previousAmp.process()
-		a.input = p.lastOutput()
-	}
 	result := Run(a, a.waiting)
 	// fmt.Println(result.outputs)
 	a.software = result.software
@@ -151,14 +133,9 @@ func (a *Amplifier) ParseInstruction(index int) Instruction {
 
 func NewAmplifier(input int, software []int, phase int) *Amplifier {
 	a := &Amplifier{}
-	a.input = new(int)
-	*a.input = input
-	a.phase = nil
-	if phase != -1 {
-		p := new(int)
-		*p = phase
-		a.phase = p
-	}
+	a.inputs = make([]int, 0)
+	a.inputs = append(a.inputs, input)
+	a.phase = phase
 	a.software = copySoftware(software)
 	a.relativeBase = 0
 	return a
@@ -196,13 +173,11 @@ type ProcessResult struct {
 	index    int
 }
 
-func (pr *ProcessResult) lastOutput() *int {
+func (pr *ProcessResult) lastOutput() int {
 	if len(pr.outputs) == 0 {
-		r := -1
-		return &r
+		return -1
 	}
-	r := pr.outputs[len(pr.outputs)-1]
-	return &r
+	return pr.outputs[len(pr.outputs)-1]
 }
 
 func copySoftware(s []int) []int {
@@ -228,11 +203,11 @@ func Run(computer IntcodeComputer, feedback bool) ProcessResult {
 		case 3: //input
 			input := computer.getPhase()
 
-			if input == nil {
+			if input == -1 {
 				input = computer.getSignal()
 			}
 			// fmt.Println("input", input)
-			if input == nil {
+			if input == -1 {
 				// i = i + instruction.AdvanceLength()
 				return ProcessResult{outputs, j, i}
 			}
@@ -247,7 +222,7 @@ func Run(computer IntcodeComputer, feedback bool) ProcessResult {
 			if instruction.mode1 == 2 {
 				outputPosition = outputPosition + computer.getRelativeBase()
 			}
-			j[outputPosition] = *input
+			j[outputPosition] = input
 		case 4: //output
 			firstParameter := j[i+1]
 			if instruction.mode1 == 0 {

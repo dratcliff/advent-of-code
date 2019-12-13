@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/gitchander/permutation"
@@ -28,7 +27,7 @@ func TestFivePartOne(t *testing.T) {
 	j := StringToIntArray(s)
 	a := NewAmplifier(1, j, -1)
 	result := a.process()
-	if result.lastOutput() == nil || *result.lastOutput() != 14155342 {
+	if result.lastOutput() != 14155342 {
 		t.Errorf("Expected 14155342 got %d", result)
 	}
 }
@@ -38,7 +37,7 @@ func TestFivePartTwo(t *testing.T) {
 	j := StringToIntArray(s)
 	a := NewAmplifier(5, j, -1)
 	result := a.process()
-	if result.lastOutput() == nil || *result.lastOutput() != 8684145 {
+	if result.lastOutput() != 8684145 {
 		t.Errorf("Expected 8684145 got %d", result)
 	}
 }
@@ -47,21 +46,17 @@ func TestSevenSampleOne(t *testing.T) {
 	s := []int{3, 15, 3, 16, 1002, 16, 10, 16, 1, 16, 15, 15, 4, 15, 99, 0, 0}
 	ampA := NewAmplifier(0, copySoftware(s), 4)
 
-	ampB := NewAmplifier(0, s, 3)
-	ampB.previousAmp = ampA
+	ampB := NewAmplifier(ampA.process().outputs[0], s, 3)
 
-	ampC := NewAmplifier(0, s, 2)
-	ampC.previousAmp = ampB
+	ampC := NewAmplifier(ampB.process().outputs[0], s, 2)
 
-	ampD := NewAmplifier(0, s, 1)
-	ampD.previousAmp = ampC
+	ampD := NewAmplifier(ampC.process().outputs[0], s, 1)
 
-	ampE := NewAmplifier(0, s, 0)
-	ampE.previousAmp = ampD
+	ampE := NewAmplifier(ampD.process().outputs[0], s, 0)
 
 	result := ampE.process()
 
-	if result.lastOutput() == nil || *result.lastOutput() != 43210 {
+	if result.lastOutput() != 43210 {
 		t.Errorf("Expected 43210, got %d", result)
 	}
 }
@@ -79,26 +74,26 @@ func TestSeven(t *testing.T) {
 		ampA := NewAmplifier(*firstInput, program, a[0])
 		ampA.process()
 		// fmt.Println("ampA last out", *ampA.lastOutput)
-		ampB := NewAmplifier(*ampA.lastOutput, program, a[1])
+		ampB := NewAmplifier(ampA.lastOutput, program, a[1])
 		// ampB.previousAmp = ampA
 		ampB.process()
 
-		ampC := NewAmplifier(*ampB.lastOutput, program, a[2])
+		ampC := NewAmplifier(ampB.lastOutput, program, a[2])
 		// ampC.previousAmp = ampB
 		ampC.process()
 
-		ampD := NewAmplifier(*ampC.lastOutput, program, a[3])
+		ampD := NewAmplifier(ampC.lastOutput, program, a[3])
 		// ampD.previousAmp = ampC
 		ampD.process()
 		// fmt.Println("ampD last out", *ampD.lastOutput)
-		ampE := NewAmplifier(*ampD.lastOutput, program, a[4])
+		ampE := NewAmplifier(ampD.lastOutput, program, a[4])
 		// ampE.previousAmp = ampD
 		ampE.process()
 
 		last := ampE.lastOutput
 		// fmt.Println("ampE last out", *last)
-		if last != nil && *last > max {
-			max = *last
+		if last != -1 && last > max {
+			max = last
 		}
 		// firstInput = last
 	}
@@ -126,17 +121,16 @@ func TestSevenPartTwoSample(t *testing.T) {
 	amps[4].process()
 
 	for amps[4].waiting && amps[3].waiting && amps[2].waiting && amps[1].waiting && amps[0].waiting {
-		amps[0].input = amps[4].lastOutput
-		fmt.Println(*amps[4].lastOutput)
+		amps[0].setSingleInput(amps[4].lastOutput)
 		amps[0].process()
 		for i := 1; i < 5; i = i + 1 {
-			amps[i].input = amps[i-1].lastOutput
+			amps[i].setSingleInput(amps[i-1].lastOutput)
 			amps[i].process()
 		}
 	}
 
-	if amps[4].lastOutput == nil || *amps[4].lastOutput != 139629729 {
-		t.Errorf("Expected 139629729 got %d", *amps[4].lastOutput)
+	if amps[4].lastOutput != 139629729 {
+		t.Errorf("Expected 139629729 got %d", amps[4].lastOutput)
 	}
 }
 
@@ -161,16 +155,16 @@ func TestSevenPartTwo(t *testing.T) {
 		amps[4].process()
 
 		for amps[4].waiting {
-			amps[0].input = amps[4].lastOutput
+			amps[0].inputs = []int{amps[4].lastOutput}
 			amps[0].process()
 			for i := 1; i < 5; i = i + 1 {
-				amps[i].input = amps[i-1].lastOutput
+				amps[i].inputs = []int{amps[i-1].lastOutput}
 				amps[i].process()
 			}
 		}
 
-		if amps[4].lastOutput != nil && *amps[4].lastOutput > max {
-			max = *amps[4].lastOutput
+		if amps[4].lastOutput > max {
+			max = amps[4].lastOutput
 		}
 	}
 	if max != 2299406 {
@@ -189,13 +183,13 @@ func TestNine(t *testing.T) {
 	}
 	amp = NewAmplifier(0, []int{1102, 34915192, 34915192, 7, 4, 7, 99, 0}, -1)
 	r := amp.process()
-	if r.lastOutput() == nil || *r.lastOutput() != 1219070632396864 {
+	if r.lastOutput() != 1219070632396864 {
 		t.Errorf("Expected 1219070632396864 got %d", r.lastOutput())
 	}
 	amp = NewAmplifier(0, []int{104, 1125899906842624, 99}, -1)
 	r = amp.process()
 
-	if r.lastOutput() == nil || *r.lastOutput() != 1125899906842624 {
+	if r.lastOutput() != 1125899906842624 {
 		t.Errorf("Expected 1125899906842624 got %d", r.lastOutput())
 	}
 
@@ -203,109 +197,14 @@ func TestNine(t *testing.T) {
 	program := StringToIntArray(s)
 	amp = NewAmplifier(1, program, -1)
 	r = amp.process()
-	if r.lastOutput() == nil || *r.lastOutput() != 4234906522 {
+	if r.lastOutput() != 4234906522 {
 		t.Errorf("Expected 4234906522 got %d", 4234906522)
 	}
 
 	amp = NewAmplifier(2, program, -1)
 	r = amp.process()
-	if r.lastOutput() == nil || *r.lastOutput() != 60962 {
+	if r.lastOutput() != 60962 {
 		t.Errorf("Expected 60962 got %d", r.lastOutput())
 	}
 
-}
-
-func TestEleven(t *testing.T) {
-	s := SingleLineFileToString("11.txt")
-	program := StringToIntArray(s)
-	amp := NewAmplifier(0, program, -1)
-	amp.waiting = true
-
-	onBlack := new(int)
-	*onBlack = 0
-
-	onWhite := new(int)
-	*onWhite = 1
-
-	amp.input = onWhite
-	m := make(map[Point]PaintColor)
-	loc := RobotLocation{Point{0, 0}, Up}
-	i := 0
-	for {
-		r := amp.process()
-		i = i + 1
-		colorOutput := r.outputs[0]
-		if colorOutput == 0 {
-			m[loc.Position] = Black
-		} else {
-			m[loc.Position] = White
-		}
-		directionOutput := r.outputs[1]
-		switch loc.Orientation {
-		case Up:
-			if directionOutput == 0 {
-				loc = RobotLocation{Point{loc.Position.X - 1, loc.Position.Y}, Left}
-			} else {
-				loc = RobotLocation{Point{loc.Position.X + 1, loc.Position.Y}, Right}
-			}
-		case Down:
-			if directionOutput == 0 {
-				loc = RobotLocation{Point{loc.Position.X + 1, loc.Position.Y}, Right}
-			} else {
-				loc = RobotLocation{Point{loc.Position.X - 1, loc.Position.Y}, Left}
-			}
-		case Left:
-			if directionOutput == 0 {
-				loc = RobotLocation{Point{loc.Position.X, loc.Position.Y - 1}, Down}
-			} else {
-				loc = RobotLocation{Point{loc.Position.X, loc.Position.Y + 1}, Up}
-			}
-		case Right:
-			if directionOutput == 0 {
-				loc = RobotLocation{Point{loc.Position.X, loc.Position.Y + 1}, Up}
-			} else {
-				loc = RobotLocation{Point{loc.Position.X, loc.Position.Y - 1}, Down}
-			}
-		}
-		if val, ok := m[loc.Position]; ok {
-			if val == Black {
-				amp.input = onBlack
-			} else {
-				amp.input = onWhite
-			}
-		} else {
-			amp.input = onBlack
-		}
-		if r.index == -1 {
-			break
-		}
-	}
-
-	fmt.Println(i, len(m))
-
-	grid := make([][]int, 60)
-	for i, _ := range grid {
-		grid[i] = make([]int, 60)
-	}
-
-	for k, v := range m {
-		i := 0
-		if v == White {
-			i = 1
-		}
-		grid[k.X+10][k.Y+10] = i
-	}
-
-	for _, v := range grid {
-		for _, w := range v {
-			if w == 0 {
-				fmt.Printf("%s", " ")
-			} else {
-				fmt.Printf("%s", "*")
-			}
-			// fmt.Println(w)
-		}
-
-		fmt.Println(len(v))
-	}
 }
