@@ -1,12 +1,13 @@
 def getLines(filename, to_int=True):
     my_list = []
-
     with open(filename) as fp:
         line = fp.readline()
+        
         while line:
             entry = line
             if to_int:
-                entry = int(entry)
+                entry = int(entry.rstrip('\n'))
+                my_list.append(entry)
             else: 
                 my_list.append(entry.rstrip('\n'))
             line = fp.readline()
@@ -20,6 +21,7 @@ def calculate(my_list):
 
 def test_calculate():
     lines = getLines("1.txt")
+    print(lines)
     answer = calculate(lines)
     assert answer == 3406527
 
