@@ -28,8 +28,8 @@ func TestThreeSampleTwo(t *testing.T) {
 }
 
 func TestThree(t *testing.T) {
-	pathOne := SingleLineFileToString("3a.txt")
-	pathTwo := SingleLineFileToString("3b.txt")
+	pathOne := SingleLineFileToString("resources/3a.txt")
+	pathTwo := SingleLineFileToString("resources/3b.txt")
 	distance := Three(pathOne, pathTwo)
 	fmt.Println(distance)
 }
@@ -51,7 +51,7 @@ func TestThreePartTwoSampleTwo(t *testing.T) {
 }
 
 func TestThreePartTwo(t *testing.T) {
-	pathOne := SingleLineFileToString("3a.txt")
-	pathTwo := SingleLineFileToString("3b.txt")
+	pathOne := SingleLineFileToString("resources/3a.txt")
+	pathTwo := SingleLineFileToString("resources/3b.txt")
 	fmt.Println(Three(pathOne, pathTwo))
 }

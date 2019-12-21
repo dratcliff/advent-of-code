@@ -11,7 +11,7 @@ import (
 )
 
 func Vacuum() {
-	s := SingleLineFileToString("17.txt")
+	s := SingleLineFileToString("resources/17.txt")
 	software := StringToIntArray(s)
 	amp := NewAmplifier(0, software, -1)
 	r := amp.process()
@@ -50,7 +50,7 @@ func Vacuum() {
 }
 
 func Vacuum2() {
-	s := SingleLineFileToString("17.txt")
+	s := SingleLineFileToString("resources/17.txt")
 	software := StringToIntArray(s)
 	amp := NewAmplifier(0, software, -1)
 	r := amp.process()
@@ -388,7 +388,7 @@ func Vacuum3() {
 	d := []byte("A,B,A,B,C,A,C,A,C,B\n")
 	e := []byte("N\n")
 
-	s := SingleLineFileToString("17.txt")
+	s := SingleLineFileToString("resources/17.txt")
 	software := StringToIntArray(s)
 	software[0] = 2
 	amp := NewAmplifier(0, software, -1)

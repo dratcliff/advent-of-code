@@ -17,7 +17,7 @@ def test_get_layers():
         print(layer)
 
 def test_part_one():
-    lines = getLines("8.txt", False)
+    lines = getLines("resources/8.txt", False)
     layers = get_layers(lines[0], height=6, width=25)
     counts = []
     for layer in layers:
@@ -45,7 +45,7 @@ def test_part_two():
     h = 6
     w = 25
 
-    lines = getLines("8.txt", False)
+    lines = getLines("resources/8.txt", False)
     layers = get_layers(lines[0], height=h, width=w)
     layers_by_row = []
     for layer in layers:

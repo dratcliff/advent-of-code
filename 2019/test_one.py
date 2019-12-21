@@ -20,7 +20,7 @@ def calculate(my_list):
     return sum
 
 def test_calculate():
-    lines = getLines("1.txt")
+    lines = getLines("resources/1.txt")
     print(lines)
     answer = calculate(lines)
     assert answer == 3406527
@@ -35,6 +35,6 @@ def calculate_part_two(my_list):
     return sum
 
 def test_calculate_part_two():
-    lines = getLines("1.txt")
+    lines = getLines("resources/1.txt")
     answer = calculate_part_two(lines)
     assert answer == 5106932

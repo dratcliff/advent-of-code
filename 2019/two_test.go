@@ -74,14 +74,14 @@ func TestStringToArray(t *testing.T) {
 }
 
 func TestSingleLineFileToString(t *testing.T) {
-	s := SingleLineFileToString("2.txt")
+	s := SingleLineFileToString("resources/2.txt")
 	if s == "" {
 		t.Errorf("Should not have been empty string")
 	}
 }
 
 func TestPartOne(t *testing.T) {
-	s := SingleLineFileToString("2.txt")
+	s := SingleLineFileToString("resources/2.txt")
 	i := StringToIntArray(s)
 	i[1] = 12
 	i[2] = 2
@@ -90,7 +90,7 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	s := SingleLineFileToString("2.txt")
+	s := SingleLineFileToString("resources/2.txt")
 	noun := 0
 	v := 19690720
 	for noun < 100 {

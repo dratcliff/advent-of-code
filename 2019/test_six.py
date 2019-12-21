@@ -25,7 +25,7 @@ def part_one(filename):
     return sum
 
 def test_part_one():
-    assert part_one('6.txt') == 308790
+    assert part_one('resources/6.txt') == 308790
 
 def get_orbited(filename):
     d1 = dict()
@@ -51,7 +51,7 @@ def walk_orbits(tree, rootLabel, stopLabel, sum=0):
                     return result
 
 def test_part_two():
-    d = get_orbited('6.txt')
+    d = get_orbited('resources/6.txt')
     min = len(d)*2
     for k in d:
         y = walk_orbits(d, k, 'YOU')

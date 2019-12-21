@@ -10,7 +10,7 @@ def file_line_to_int_array(filename):
     return my_list
 
 def test_file_line_to_int_array():
-    my_array = file_line_to_int_array('2.txt')
+    my_array = file_line_to_int_array('resources/2.txt')
     assert len(my_array) == 145
 
 def run(input):
@@ -36,13 +36,13 @@ def test_run():
     assert run([1,1,1,4,99,5,6,0,99]) == [30,1,1,4,2,5,6,0,99]
 
 def test_part_one():   
-    part_one = file_line_to_int_array('2.txt')
+    part_one = file_line_to_int_array('resources/2.txt')
     part_one[1] = 12
     part_one[2] = 2
     assert run(part_one)[0] == 4138658
 
 def part_two():
-    out = file_line_to_int_array('2.txt')
+    out = file_line_to_int_array('resources/2.txt')
     for i in range(0, 100):
         for j in range(0, 100):
             k = list(out)

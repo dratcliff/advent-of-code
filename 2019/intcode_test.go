@@ -23,7 +23,7 @@ func TestParseInstruction(t *testing.T) {
 }
 
 func TestFivePartOne(t *testing.T) {
-	s := SingleLineFileToString("5.txt")
+	s := SingleLineFileToString("resources/5.txt")
 	j := StringToIntArray(s)
 	a := NewAmplifier(1, j, -1)
 	result := a.process()
@@ -33,7 +33,7 @@ func TestFivePartOne(t *testing.T) {
 }
 
 func TestFivePartTwo(t *testing.T) {
-	s := SingleLineFileToString("5.txt")
+	s := SingleLineFileToString("resources/5.txt")
 	j := StringToIntArray(s)
 	a := NewAmplifier(5, j, -1)
 	result := a.process()
@@ -63,7 +63,7 @@ func TestSevenSampleOne(t *testing.T) {
 
 func TestSeven(t *testing.T) {
 	max := 0
-	s := SingleLineFileToString("7.txt")
+	s := SingleLineFileToString("resources/7.txt")
 	program := StringToIntArray(s)
 	a := []int{0, 1, 2, 3, 4}
 	p := permutation.New(permutation.IntSlice(a))
@@ -135,7 +135,7 @@ func TestSevenPartTwoSample(t *testing.T) {
 }
 
 func TestSevenPartTwo(t *testing.T) {
-	s := SingleLineFileToString("7.txt")
+	s := SingleLineFileToString("resources/7.txt")
 	program := StringToIntArray(s)
 	phases := []int{9, 8, 7, 6, 5}
 	max := 0
@@ -193,7 +193,7 @@ func TestNine(t *testing.T) {
 		t.Errorf("Expected 1125899906842624 got %d", r.lastOutput())
 	}
 
-	s := SingleLineFileToString("9.txt")
+	s := SingleLineFileToString("resources/9.txt")
 	program := StringToIntArray(s)
 	amp = NewAmplifier(1, program, -1)
 	r = amp.process()

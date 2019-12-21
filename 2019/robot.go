@@ -90,7 +90,7 @@ func sizeY(tiles map[Point]PaintColor) (int, int) {
 }
 
 func run() {
-	s := SingleLineFileToString("11.txt")
+	s := SingleLineFileToString("resources/11.txt")
 	program := StringToIntArray(s)
 	amp := NewAmplifier(0, program, -1)
 	amp.waiting = true

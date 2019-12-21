@@ -211,7 +211,7 @@ YN......#               VT..#....QG
     print(get_shortest(text))
 
 def part_one():
-    text = getLines("20.txt", to_int=False)
+    text = getLines("resources/20.txt", to_int=False)
     print(get_shortest(text))
 
 def is_outer(mint, maxt, p1):
@@ -290,7 +290,7 @@ RE....#.#                           #......RF
                A O F   N                     
                A A D   M                     """.splitlines()[1:]
 
-    text = getLines("20.txt", to_int=False)
+    text = getLines("resources/20.txt", to_int=False)
     print(graph_stuff2(text))
     # print(G.edges())
 

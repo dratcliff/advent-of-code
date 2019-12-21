@@ -5,7 +5,7 @@ import (
 )
 
 func TestCountBlocks(t *testing.T) {
-	s := SingleLineFileToString("13.txt")
+	s := SingleLineFileToString("resources/13.txt")
 	software := StringToIntArray(s)
 	software[0] = 2
 	amp := NewAmplifier(0, software, -1)

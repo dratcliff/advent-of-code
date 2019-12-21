@@ -184,7 +184,7 @@ def test_part_one_five():
     assert out == 2210736
 
 def test_part_two():
-    lines = test_one.getLines("14.txt", to_int=False)
+    lines = test_one.getLines("resources/14.txt", to_int=False)
     target = 1000000000000
     guess = 5000000
     low_guess = 1000000

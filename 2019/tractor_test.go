@@ -1,7 +1,11 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestTractor(t *testing.T) {
-	Tractor()
+	x, y := Tractor()
+	fmt.Println(x*10000 + y)
 }

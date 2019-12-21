@@ -108,7 +108,7 @@ def test_three():
     assert get_max(e3_in) == ((11,13), 210)
 
 def test_part_one():
-    part_one = getLines('10.txt', to_int=False)
+    part_one = getLines('resources/10.txt', to_int=False)
     assert get_max(part_one) == ((20, 18), 280) 
 
 
@@ -186,7 +186,7 @@ def test_part_two():
     assert (rotated[298].tox == 11 and rotated[298].toy == 1)
 
 def test_part_two_file():
-    a = get_asteroids(getLines('10.txt', to_int=False))
+    a = get_asteroids(getLines('resources/10.txt', to_int=False))
     d = distances(a)
     t = d[(20, 18)]
 

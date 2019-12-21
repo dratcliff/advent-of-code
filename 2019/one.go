@@ -9,7 +9,7 @@ import (
 
 func One() {
 	fmt.Println("hi")
-	f, err := os.Open("1.txt")
+	f, err := os.Open("resources/1.txt")
 	if err != nil {
 		panic(err)
 	}

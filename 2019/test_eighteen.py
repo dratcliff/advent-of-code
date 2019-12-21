@@ -286,13 +286,13 @@ def sample_four():
     print(my_maze.sick_of_this("@", remaining, (), 0))
 
 def part_one():
-    maze = getLines("18.txt", to_int=False)
+    maze = getLines("resources/18.txt", to_int=False)
     my_maze = MyMaze(maze)
     remaining = tuple(v for v in my_maze.keys.keys())
     print(my_maze.sick_of_this2("@", remaining, (), 0))
 
 def part_two():
-    maze = getLines("182b.txt", to_int=False)
+    maze = getLines("resources/182b.txt", to_int=False)
     my_maze = MyMaze(maze)
     remaining = tuple(v for v in my_maze.keys.keys())
     print(my_maze.sick_of_this2("@", remaining, (), 0))

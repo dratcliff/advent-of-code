@@ -57,7 +57,7 @@ func Repair() {
 		fmt.Println("Queue is empty !")
 	}
 
-	s := SingleLineFileToString("15.txt")
+	s := SingleLineFileToString("resources/15.txt")
 	j := StringToIntArray(s)
 	input := 1
 	count := 0
