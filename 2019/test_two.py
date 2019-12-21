@@ -9,9 +9,11 @@ def file_line_to_int_array(filename):
             line = fp.readline()
     return my_list
 
+
 def test_file_line_to_int_array():
     my_array = file_line_to_int_array('resources/2.txt')
     assert len(my_array) == 145
+
 
 def run(input):
     i = 0
@@ -29,17 +31,20 @@ def run(input):
         i = i + 4
     return input
 
-def test_run():
-    assert run([1,0,0,0,99]) == [2,0,0,0,99]
-    assert run([2,3,0,3,99]) == [2,3,0,6,99]
-    assert run([2,4,4,5,99,0]) == [2,4,4,5,99,9801]
-    assert run([1,1,1,4,99,5,6,0,99]) == [30,1,1,4,2,5,6,0,99]
 
-def test_part_one():   
+def test_run():
+    assert run([1, 0, 0, 0, 99]) == [2, 0, 0, 0, 99]
+    assert run([2, 3, 0, 3, 99]) == [2, 3, 0, 6, 99]
+    assert run([2, 4, 4, 5, 99, 0]) == [2, 4, 4, 5, 99, 9801]
+    assert run([1, 1, 1, 4, 99, 5, 6, 0, 99]) == [30, 1, 1, 4, 2, 5, 6, 0, 99]
+
+
+def test_part_one():
     part_one = file_line_to_int_array('resources/2.txt')
     part_one[1] = 12
     part_one[2] = 2
     assert run(part_one)[0] == 4138658
+
 
 def part_two():
     out = file_line_to_int_array('resources/2.txt')
@@ -51,6 +56,7 @@ def part_two():
             k = run(k)
             if k[0] == 19690720:
                 return i*100 + j
+
 
 def test_part_two():
     assert part_two() == 7264

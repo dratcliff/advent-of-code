@@ -2,6 +2,7 @@ from string import ascii_uppercase as uppercase
 from test_one import getLines
 import networkx as nx
 
+
 def get_portals(grid):
     portals = {}
 
@@ -26,7 +27,7 @@ def get_portals(grid):
 
         if d in grid and grid[d] in uppercase:
             if dd in grid and grid[dd] == ".":
-                key = v + grid[d]                
+                key = v + grid[d]
                 if key in portals:
                     portals[key].append(dd)
                 else:
@@ -34,21 +35,22 @@ def get_portals(grid):
 
         if f in grid and grid[f] in uppercase:
             if ff in grid and grid[ff] == ".":
-                key = grid[f] + v                
+                key = grid[f] + v
                 if key in portals:
                     portals[key].append(ff)
                 else:
                     portals[key] = [ff]
-        
+
         if r in grid and grid[r] in uppercase:
             if rr in grid and grid[rr] == ".":
-                key = v + grid[r]                
+                key = v + grid[r]
                 if key in portals:
                     portals[key].append(rr)
                 else:
                     portals[key] = [rr]
 
     return portals
+
 
 def graph_stuff(grid, portals):
     G = nx.Graph()
@@ -70,6 +72,7 @@ def graph_stuff(grid, portals):
                     G.add_edge(k, j)
 
     return G
+
 
 def graph_stuff2(text):
     G = nx.Graph()
@@ -102,11 +105,11 @@ def graph_stuff2(text):
                 if is_outer(mint, maxt, v[0]) and not is_outer(mint, maxt, v[1]):
                     G.add_node((v[0], i+1))
                     G.add_node((v[1], i))
-                    G.add_edge( (v[0], i+1), (v[1], i) )
+                    G.add_edge((v[0], i+1), (v[1], i))
                 elif is_outer(mint, maxt, v[1]) and not is_outer(mint, maxt, v[0]):
                     G.add_node((v[1], i+1))
                     G.add_node((v[0], i))
-                    G.add_edge( (v[1], i+1), (v[0], i) )
+                    G.add_edge((v[1], i+1), (v[0], i))
     # for i in range(200):
     #     print(i)
     #     for k in [y for y in G.nodes() if y[1] == i]:
@@ -127,13 +130,14 @@ def graph_stuff2(text):
 
     return G
 
+
 def get_shortest2(text):
     grid = {(j, i): w for i, v in enumerate(text) for j, w in enumerate(v)}
     portals = get_portals(grid)
     portal_points = frozenset([k for j in portals.values() for k in j])
-    
+
     G = graph_stuff(grid, portals)
-    
+
     for k in portals:
         for j in portals:
             if k != j:
@@ -143,7 +147,8 @@ def get_shortest2(text):
                 the_path = nx.shortest_path(G, start, end)
                 print(k, j, len(the_path)-1)
 
-def sample_one(): 
+
+def sample_one():
     m = """
          A           
          A           
@@ -166,7 +171,7 @@ FG..#########.....#
              Z       """
     text = m.splitlines()[1:]
     print(get_shortest(text))
-    
+
 
 def sample_two():
     m = """
@@ -210,12 +215,15 @@ YN......#               VT..#....QG
     text = m.splitlines()[1:]
     print(get_shortest(text))
 
+
 def part_one():
     text = getLines("resources/20.txt", to_int=False)
     print(get_shortest(text))
 
+
 def is_outer(mint, maxt, p1):
     return p1[0] == mint[0]+2 or p1[0] == maxt[0]-2 or p1[1] == maxt[1]-2 or p1[1] == mint[1]+2
+
 
 def get_outer(text):
     grid = {(j, i): w for i, v in enumerate(text) for j, w in enumerate(v)}
@@ -228,6 +236,7 @@ def get_outer(text):
                     grid[p1] = "#"
     return grid
 
+
 def get_inner(text):
     grid = {(j, i): w for i, v in enumerate(text) for j, w in enumerate(v)}
     portals = get_portals(grid)
@@ -236,6 +245,7 @@ def get_inner(text):
             for p1 in portals[p]:
                 grid[p1] = "#"
     return grid
+
 
 def get_boundaries(grid):
     minx, miny, maxx, maxy = 99, 99, 0, 0
@@ -249,6 +259,7 @@ def get_boundaries(grid):
         if k[1] > maxy:
             maxy = k[1]
     return ((minx, miny), (maxx, maxy))
+
 
 def part_two():
     text = """
@@ -293,5 +304,6 @@ RE....#.#                           #......RF
     text = getLines("resources/20.txt", to_int=False)
     print(graph_stuff2(text))
     # print(G.edges())
+
 
 part_two()

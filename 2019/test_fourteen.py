@@ -2,11 +2,14 @@ from textwrap import dedent
 from math import ceil
 import test_one
 
+
 class Chemical():
     def __str__(self):
         return self.sym + str(self.quant)
+
     def __repr__(self):
         return self.sym + str(self.quant)
+
     def __init__(self, representation=None, symbol=None, quantity=None, extra=None):
         self.extra = extra
         if symbol and (quantity is not None):
@@ -16,10 +19,13 @@ class Chemical():
             components = representation.split(' ')
             self.quant = int(components[0])
             self.sym = components[1]
+
     def __eq__(self, other):
         return self.quant == other.quant and self.sym == other.sym
+
     def __hash__(self):
         return hash((self.sym, self.quant))
+
 
 def get_requirements(input_lines):
     lookup_table = {}
@@ -30,6 +36,7 @@ def get_requirements(input_lines):
         left = [Chemical(representation=x) for x in split_line[0].split(', ')]
         lookup_table[chemical] = left
     return lookup_table
+
 
 def buy_chemical(chemical, lookup_table, inventory):
     if chemical.sym in inventory:
@@ -57,12 +64,14 @@ def buy_chemical(chemical, lookup_table, inventory):
                 inventory[k.sym] += leftover
     return spent
 
+
 def find_ore_req(input_lines, fuel_quantity, inventory=None):
-    if inventory is None: # if you modify a default argument, its value persists until next call
+    if inventory is None:  # if you modify a default argument, its value persists until next call
         inventory = {}
     lookup_table = get_requirements(input_lines)
     req = lookup_table[Chemical(symbol='FUEL', quantity=1)]
-    scaled_req = [Chemical(symbol=x.sym, quantity=x.quant*fuel_quantity) for x in req]
+    scaled_req = [
+        Chemical(symbol=x.sym, quantity=x.quant*fuel_quantity) for x in req]
     spent = []
     for r in scaled_req:
         bought = buy_chemical(r, lookup_table, inventory)
@@ -82,6 +91,7 @@ def find_ore_req(input_lines, fuel_quantity, inventory=None):
     ore_sum = remove_unnecessary_ore(inventory, lookup_table, ore_sum)
     return (ore_sum, inventory)
 
+
 def spend_ore(spent, lookup_table, inventory):
     for chem in spent:
         if chem.sym != 'ORE':
@@ -94,6 +104,7 @@ def spend_ore(spent, lookup_table, inventory):
             bought += chem.quant
     return bought
 
+
 def remove_unnecessary_ore(inventory, lookup_table, total):
     for k, quantity in inventory.items():
         for j, items in lookup_table.items():
@@ -102,6 +113,7 @@ def remove_unnecessary_ore(inventory, lookup_table, total):
                     if quantity >= j.quant:
                         total -= items[0].quant
     return total
+
 
 def test_part_one_one():
     lines = """10 ORE => 10 A
@@ -113,6 +125,7 @@ def test_part_one_one():
     lines = [dedent(x) for x in lines.splitlines()]
     out = find_ore_req(lines, 1)[0]
     assert out == 31
+
 
 def test_part_one_two():
     lines = """9 ORE => 2 A
@@ -126,6 +139,7 @@ def test_part_one_two():
     out = find_ore_req(lines, 1)[0]
     print("out is", out)
     assert out == 165
+
 
 def test_part_one_three():
     lines = """157 ORE => 5 NZVS
@@ -141,6 +155,7 @@ def test_part_one_three():
     out = find_ore_req(lines, 1)[0]
     print("out is", out)
     assert out == 13312
+
 
 def test_part_one_four():
     lines = """2 VPVL, 7 FWMGM, 2 CXFTF, 11 MNCFX => 1 STKFG
@@ -159,6 +174,7 @@ def test_part_one_four():
     out = find_ore_req(lines, 1)[0]
     print("out is", out)
     assert out == 180697
+
 
 def test_part_one_five():
     lines = """171 ORE => 8 CNZTR
@@ -182,6 +198,7 @@ def test_part_one_five():
     out = find_ore_req(lines, 1)[0]
     print("out is", out)
     assert out == 2210736
+
 
 def test_part_two():
     lines = test_one.getLines("resources/14.txt", to_int=False)

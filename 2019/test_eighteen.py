@@ -12,9 +12,11 @@ from test_one import getLines
 
 debug = False
 
+
 class MyMaze:
     def __init__(self, text):
-        self.grid = {(j, i): w for i, v in enumerate(text) for j, w in enumerate(v)}
+        self.grid = {(j, i): w for i, v in enumerate(text)
+                     for j, w in enumerate(v)}
         self.keys = {}
         self.doors = {}
         self.reachable = {}
@@ -58,18 +60,18 @@ class MyMaze:
                 return None
             if next_grid_val in string.ascii_uppercase:
                 next_doors = current_tuple[2] + (next_grid_val,)
-            else: 
+            else:
                 next_doors = current_tuple[2]
             if next_grid_val in string.ascii_lowercase:
                 start_sym = self.grid[current_tuple[0]]
                 if start_sym not in self.reachable:
                     self.reachable[start_sym] = {}
                 if next_grid_val not in self.reachable[start_sym]:
-                    self.reachable[start_sym][next_grid_val] = (next_doors, current_tuple[3]+1)
+                    self.reachable[start_sym][next_grid_val] = (
+                        next_doors, current_tuple[3]+1)
 
             return (current_tuple[0], next_position, next_doors, current_tuple[3]+1)
-            
-        
+
         queue = deque([])
         discovered = {}
         start_item = (start, start, (), 0)
@@ -105,14 +107,14 @@ class MyMaze:
                     print("required keys", required_keys)
                 if all(i.lower() in acquired_keys for i in required_keys):
                     if debug:
-                        print("all required keys present", required_keys, acquired_keys) 
+                        print("all required keys present",
+                              required_keys, acquired_keys)
                     r = (k, v[1])
                     t = t + (r,)
         if debug:
             print("will return", t, "from get reachable")
         self.reachable_cache[(start, sa)] = t
         return t
-
 
     """
     1  procedure BFS(G,start_v):
@@ -141,7 +143,8 @@ class MyMaze:
                     if accum in self.sick_of_this_cache[start][sr][sa]:
                         return self.sick_of_this_cache[start][sr][sa][accum]
         if debug:
-            print("start", start, "remaining", remaining, "acquired", acquired_keys, "accum", accum)
+            print("start", start, "remaining", remaining,
+                  "acquired", acquired_keys, "accum", accum)
         if len(remaining) == 0:
             return accum
         next = self.get_reachable(start, acquired_keys)
@@ -151,9 +154,11 @@ class MyMaze:
             new_acquired = acquired_keys + (r[0],)
             new_accum = accum + self.reachable[start][r[0]][1]
             if debug:
-                print("new_remaining", new_remaining, "new acquired", new_acquired, "new accum", new_accum)
+                print("new_remaining", new_remaining, "new acquired",
+                      new_acquired, "new accum", new_accum)
             if new_accum < self.minimum:
-                result = self.sick_of_this(r[0], new_remaining, new_acquired, new_accum)
+                result = self.sick_of_this(
+                    r[0], new_remaining, new_acquired, new_accum)
                 if result < self.minimum:
                     self.minimum = result
                     print(self.minimum)
@@ -173,8 +178,9 @@ class MyMaze:
 
     def sick_of_this2(self, start, remaining, acquired_keys, accum):
         if debug:
-            print("start", start, "remaining", remaining, "acquired", acquired_keys, "accum", accum)
-        tracked = {(('1','2','3','4'),frozenset()):0}
+            print("start", start, "remaining", remaining,
+                  "acquired", acquired_keys, "accum", accum)
+        tracked = {(('1', '2', '3', '4'), frozenset()): 0}
         for _ in range(0, len(self.keys)):
             next = {}
             for item in tracked:
@@ -194,7 +200,8 @@ class MyMaze:
                             if reachable_tuple != None:
                                 dist = reachable_tuple[1]
                                 if debug:
-                                    print("dist", dist, "curloc", curloc, "reachable_tuple", reachable_tuple, "curdist", curdist)
+                                    print("dist", dist, "curloc", curloc, "reachable_tuple",
+                                          reachable_tuple, "curdist", curdist)
                                 newdist = curdist + dist
                                 newkeys = frozenset(curkeys | set((newkey,)))
                                 newlocs = list(curlocs)
@@ -206,8 +213,8 @@ class MyMaze:
             tracked = next
         print(tracked)
         print(min(tracked.values()))
-        
-            
+
+
 def sample_one():
     maze = """#########
               #b.A.@.a#
@@ -224,6 +231,7 @@ def sample_one():
     # second_stop = my_maze.BFS(first_stop)
     # print(nx.shortest_path(my_maze.graph, my_maze.start, first_stop))
     # print(nx.shortest_path(my_maze.graph, first_stop, second_stop))
+
 
 def sample_two():
     maze = """########################
@@ -242,17 +250,16 @@ def sample_two():
     # first_stop = my_maze.start
     # second_stop =  my_maze.BFS(first_stop)
     # count = len(nx.shortest_path(my_maze.graph, first_stop, second_stop))-1
-    
+
     # done = False
     # while not done:
     #     first_stop = second_stop
-    #     second_stop = my_maze.DFS(first_stop)   
+    #     second_stop = my_maze.DFS(first_stop)
     #     count += len(nx.shortest_path(my_maze.graph, first_stop, second_stop))-1
     #     done = my_maze.all_keys_acquired()
 
     # print(count)
 
-    
 
 def sample_three():
     maze = """#################
@@ -268,10 +275,11 @@ def sample_three():
     my_maze = MyMaze(maze)
     remaining = tuple(v for v in my_maze.keys.keys())
     print(my_maze.sick_of_this("@", remaining, (), 0))
-              
+
 # sample_one()
 # sample_two()
 # sample_three()
+
 
 def sample_four():
     maze = """########################
@@ -285,16 +293,19 @@ def sample_four():
     remaining = tuple(v for v in my_maze.keys.keys())
     print(my_maze.sick_of_this("@", remaining, (), 0))
 
+
 def part_one():
     maze = getLines("resources/18.txt", to_int=False)
     my_maze = MyMaze(maze)
     remaining = tuple(v for v in my_maze.keys.keys())
     print(my_maze.sick_of_this2("@", remaining, (), 0))
 
+
 def part_two():
     maze = getLines("resources/182b.txt", to_int=False)
     my_maze = MyMaze(maze)
     remaining = tuple(v for v in my_maze.keys.keys())
     print(my_maze.sick_of_this2("@", remaining, (), 0))
+
 
 part_two()

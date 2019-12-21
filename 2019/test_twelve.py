@@ -1,4 +1,5 @@
 
+from math import gcd
 from itertools import permutations, combinations
 from copy import deepcopy
 from math import copysign
@@ -25,6 +26,7 @@ process does not modify the velocity of any moon.
 <x=3, y=5, z=-1>
 """
 
+
 class Moon:
     def __init__(self, x=0, y=0, z=0):
         self.p = np.array([x, y, z])
@@ -35,6 +37,7 @@ class Moon:
             return NotImplemented
         return self.v == other.p and self.v == other.v
 
+
 sample_one = [
     Moon(x=-1, y=0, z=2),
     Moon(x=2, y=-10, z=-7),
@@ -42,12 +45,13 @@ sample_one = [
     Moon(x=3, y=5, z=-1)
 ]
 
-from math import gcd
+
 def lcm(a):
     lcm = a[0]
     for i in a[1:]:
         lcm = int(lcm*i/gcd(lcm, i))
     return lcm
+
 
 def apply_gravity(moon_tuple):
     m1 = moon_tuple[0]
@@ -57,12 +61,15 @@ def apply_gravity(moon_tuple):
     m1.v -= dp
     m2.v += dp
 
+
 def apply_velocity(moon):
     # print(moon.p)
     moon.p += moon.v
 
+
 def get_combinations(moons):
     return combinations(moons, 2)
+
 
 def time_step(moons):
     for x in get_combinations(moons):
@@ -70,16 +77,18 @@ def time_step(moons):
 
     for x in moons:
         apply_velocity(x)
-    
+
 
 def total_energy(moon):
     return sum(abs(moon.p))*sum(abs(moon.v))
+
 
 def system_energy(moons):
     sum = 0
     for moon in moons:
         sum += total_energy(moon)
     return sum
+
 
 def total_energy_after(moons, no_steps):
     for i in range(0, no_steps):
@@ -90,6 +99,7 @@ def total_energy_after(moons, no_steps):
         sum += total_energy(x)
 
     return sum
+
 
 """ input for part one, probably not worth writing parser
 <x=6, y=10, z=10>
@@ -104,6 +114,7 @@ part_one = [
     Moon(x=4, y=14, z=4)
 ]
 
+
 def test_part_one():
     part_one = [
         Moon(x=6, y=10, z=10),
@@ -113,6 +124,7 @@ def test_part_one():
     ]
     result = total_energy_after(part_one, 1000)
     assert result == 13045
+
 
 sample_one = [
     Moon(x=-1, y=0, z=2),
@@ -127,6 +139,7 @@ _sample_one = [
     Moon(x=4, y=-8, z=8),
     Moon(x=3, y=5, z=-1)
 ]
+
 
 def when_repeats(moons, copy_moons):
     found = False
@@ -151,10 +164,12 @@ def when_repeats(moons, copy_moons):
             found = True
     return d
 
+
 def test_part_two_sample():
     cycle_by_axis = when_repeats(sample_one, _sample_one).values()
     result = lcm(list(cycle_by_axis))
     assert result == 2772
+
 
 part_one = [
     Moon(x=6, y=10, z=10),
@@ -170,8 +185,8 @@ _part_one = [
     Moon(x=4, y=14, z=4)
 ]
 
+
 def test_part_two():
     cycle_by_axis = when_repeats(part_one, _part_one).values()
     result = lcm(list(cycle_by_axis))
     assert result == 344724687853944
-
