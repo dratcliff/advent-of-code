@@ -35,13 +35,13 @@ func (a *Amplifier) getSoftware() []int {
 
 func (a *Amplifier) getPhase() int {
 	r := a.phase
-	a.phase = -1
+	a.phase = -2
 	return r
 }
 
 func (a *Amplifier) getSignal() int {
 	if len(a.inputs) == 0 {
-		return -1
+		return -2
 	}
 	r := a.inputs[0]
 	copy(a.inputs[0:], a.inputs[1:])
@@ -168,9 +168,10 @@ func (i *Instruction) AdvanceLength() int {
 }
 
 type ProcessResult struct {
-	outputs  []int
-	software []int
-	index    int
+	outputs   []int
+	software  []int
+	index     int
+	needInput bool
 }
 
 func (pr *ProcessResult) lastOutput() int {
@@ -203,13 +204,12 @@ func Run(computer IntcodeComputer, feedback bool) ProcessResult {
 		case 3: //input
 			input := computer.getPhase()
 
-			if input == -1 {
+			if input == -2 {
 				input = computer.getSignal()
 			}
-			// fmt.Println("input", input)
-			if input == -1 {
+			if input == -2 {
 				// i = i + instruction.AdvanceLength()
-				return ProcessResult{outputs, j, i}
+				return ProcessResult{outputs, j, i, true}
 			}
 			// sig := computer.getSignal()
 			// fmt.Println("sig is", *sig)
@@ -217,7 +217,7 @@ func Run(computer IntcodeComputer, feedback bool) ProcessResult {
 			// 	fmt.Println(*sig)
 			// 	input = *sig
 			// }
-			// fmt.Println("input is", *input, i)
+
 			outputPosition := j[i+1]
 			if instruction.mode1 == 2 {
 				outputPosition = outputPosition + computer.getRelativeBase()
@@ -262,12 +262,12 @@ func Run(computer IntcodeComputer, feedback bool) ProcessResult {
 		case 9: //adjust relative base
 			computer.adjustRelativeBase(instruction.parameter1)
 		case 99: //halt
-			return ProcessResult{outputs, j, -1}
+			return ProcessResult{outputs, j, -1, false}
 		default:
 			fmt.Printf("unsupported opcode %v\n", instruction)
 			panic("unsupported opcode" + string(instruction.opcode))
 		}
 		i = i + instruction.AdvanceLength()
 	}
-	return ProcessResult{outputs, j, -1}
+	return ProcessResult{outputs, j, -1, false}
 }

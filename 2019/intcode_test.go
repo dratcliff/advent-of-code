@@ -28,7 +28,7 @@ func TestFivePartOne(t *testing.T) {
 	a := NewAmplifier(1, j, -1)
 	result := a.process()
 	if result.lastOutput() != 14155342 {
-		t.Errorf("Expected 14155342 got %d", result)
+		t.Errorf("Expected 14155342 got %d", result.lastOutput())
 	}
 }
 
@@ -38,7 +38,7 @@ func TestFivePartTwo(t *testing.T) {
 	a := NewAmplifier(5, j, -1)
 	result := a.process()
 	if result.lastOutput() != 8684145 {
-		t.Errorf("Expected 8684145 got %d", result)
+		t.Errorf("Expected 8684145 got %d", result.lastOutput())
 	}
 }
 
@@ -57,7 +57,7 @@ func TestSevenSampleOne(t *testing.T) {
 	result := ampE.process()
 
 	if result.lastOutput() != 43210 {
-		t.Errorf("Expected 43210, got %d", result)
+		t.Errorf("Expected 43210, got %d", result.lastOutput())
 	}
 }
 
