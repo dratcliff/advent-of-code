@@ -1,3 +1,5 @@
+from utils import timed
+
 def parse(filename):
     grid = {}
     with open(filename) as f:
@@ -45,6 +47,7 @@ def count_trees(grid, slope_r, slope_d):
         cur_x += slope_r
     return ct
 
+@timed
 def test_day_three():
     grid = parse("Day3sample.txt")
     grid = extend(grid, 3, 1)
@@ -52,12 +55,14 @@ def test_day_three():
     ct = count_trees(grid, 3, 1)
     assert ct == 7
     
+@timed    
 def day_three():
     grid = parse("Day3.txt")
     grid = extend(grid, 3, 1)
     ct = count_trees(grid, 3, 1)
     assert 278 == ct
 
+@timed
 def test_day_three_part_two():
     """
     Right 1, down 1.
@@ -75,6 +80,7 @@ def test_day_three_part_two():
     
     assert 336 == ct
 
+@timed
 def day_three_part_two():
     slopes = [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
     ct = 1
