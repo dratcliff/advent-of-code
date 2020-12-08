@@ -1,3 +1,5 @@
+from utils import timed
+
 class Instruction:
     def __init__(self, instruction, argument):
         self.instruction = instruction
@@ -32,17 +34,19 @@ def run(instructions):
             ins = instructions[i]
     return (i, counter)
 
-
+@timed
 def test_day_eight():
     instructions = parse("Day8sample.txt")
     ct = run(instructions)
     assert ct[1] == 5
 
+@timed
 def day_eight():
     instructions = parse("Day8.txt")
     ct = run(instructions)
     assert ct[1] == 2058
 
+@timed
 def day_eight_part_two():
     instructions = parse("Day8.txt")
     ct = (0, 0)
