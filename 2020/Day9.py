@@ -22,11 +22,13 @@ def check(entries, preamble_len):
 def find_contig(entries, desired):
     found = False
     range_size = 2
-    
+    ct = 0
     while not found:
         for i in range(0, len(entries)):
+            ct += 1
             if sum(entries[i:i+range_size]) == desired:
                 found = True
+                print(i, range_size, ct, len(entries))
                 return entries[i:i+range_size]
         range_size += 1
 
