@@ -1,30 +1,33 @@
-import networkx as nx
-from itertools import combinations
-
-G = nx.DiGraph()
+from itertools import permutations
 
 def parse(filename):
-    entries = []
+    entries = {}
     with open(filename) as f:
         for line in f:
             line = line.rstrip('\n')
-            entries.append(line.split(" "))
+            e = line.split(" ")
+            start = e[0]
+            end = e[2]
+            distance = int(e[4])
+            if start not in entries:
+                entries[start] = {}
+            entries[start][end] = distance
+            if end not in entries:
+                entries[end] = {}
+            entries[end][start] = distance
+
     return entries
 
 def day_nine():
     entries = parse("Day9.txt")
-    for e in entries:
-        G.add_node(e[0])
-        G.add_node(e[2])
-        G.add_edge(e[0], e[2], weight=int(e[4]))
-        G.add_edge(e[2], e[0], weight=int(e[4]))
-    
-    for n in combinations(G.nodes(), 2):
-        print(nx.shortest_path(G, n[0], n[1]), n[0], n[1])
-
-    
-
-    print(s)
+    distances = set()
+    for c in permutations(entries.keys(), len(entries.keys())):
+        distance = 0
+        for i in range(0, len(c)-1):
+            distance += entries[c[i]][c[i+1]]
+        distances.add(distance)
+    assert min(distances) == 207
+    assert max(distances) == 804
 
 if __name__=="__main__":
     day_nine()
