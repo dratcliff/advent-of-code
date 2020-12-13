@@ -60,6 +60,7 @@ def day_thirteen_part_two():
     e = run(m)
     assert 894954360381385 == e
 
+# test
 if __name__=="__main__":
     test_day_thirteen_part_two()
     day_thirteen_part_two()
