@@ -1,0 +1,30 @@
+Disc #1 has 7 positions; at time=0, it is at position 0.
+Disc #2 has 13 positions; at time=0, it is at position 0.
+Disc #3 has 3 positions; at time=0, it is at position 2.
+Disc #4 has 5 positions; at time=0, it is at position 2.
+Disc #5 has 17 positions; at time=0, it is at position 0.
+Disc #6 has 19 positions; at time=0, it is at position 7.
+
+disc 1 has position 0 when time == 0 mod 7
+disc 2 has position 0 when time == 0 mod 13
+
+need t such that t = 0 mod 7 and t + 1 = 0 mod 13 (takes one second to fall through disc)
+
+disc 3 has position 0 when time = 1 mod 3, so also need t + 2 = 1 mod 3
+disc 4 has position 0 when time = 3 mod 5 (3, 8, etc.) so also need t + 3 = 3 mod 5, and so on
+
+t  = 0 mod 7, t + 1 = 0 mod 13, t + 2 = 1 mod 3, t + 3 = 3 mod 5, t + 4 = 0 mod 17, t + 5 = 12 mod 19
+
+wolfram alpha gives general solution as 440895*n + 121835 for integers n. Unfortunately, part two 
+requires adding one more relation and wolfram alpha doesn't give an answer, but you can find it with python:
+
+>>> i = 121834
+>>> m = 440895
+>>> j = 1
+>>> while ((i + 7) + m*j ) % 11 != 0:
+...     j += 1
+...
+>>> j
+7
+>>> m*j + i
+3208099
