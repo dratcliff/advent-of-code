@@ -4,7 +4,7 @@ class Sequence:
     def __init__(self, initial, max_size):
         self.initial = initial
         self.length = len(initial)
-        lookup = [-1 for i in range(0, max_size)]
+        lookup = [-1] * max_size
         for i in range(0, self.length-1):
             lookup[initial[i]] = i + 1
         self.lookup = lookup
