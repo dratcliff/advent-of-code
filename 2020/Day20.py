@@ -1,9 +1,9 @@
 import utils
 import numpy as np
 import pickle
-import networkx as nx
 from itertools import permutations
 import re
+
 
 class Images:
     def __init__(self, grid, adjacents):
@@ -37,15 +37,13 @@ class Images:
         for x in range(0, 12):
             for y in range(0, 12):
                 self.arrange((x, y))
-        print("original size", self.size, "arranged size", len(self.arranged))
-    
+
     def arrange(self, coord):
         tile_id, img_array = self.arranged[coord]
         above_coord = (coord[0], coord[1]-1)
         below_coord = (coord[0], coord[1]+1)
         left_coord = (coord[0]-1, coord[1])
         right_coord = (coord[0]+1, coord[1])
-        # print("arranging", coord, "above", above_coord, "left", left_coord)
         adj = self.adjacents[tile_id]
         above_id = None
         left_id = None
@@ -55,7 +53,7 @@ class Images:
             found_under = True
         if coord[0] == 11:
             found_right = True
-        
+
         if above_coord in self.arranged:
             above_id = self.arranged[above_coord][0]
             adj.remove(above_id)
@@ -70,9 +68,7 @@ class Images:
             right_id = self.arranged[right_coord][0]
             adj.remove(right_id)
             found_right = True
-        # print("adjacents to do", adj)
         for a in adj:
-            # print("trying right", a)
             right = align_right_left_fixed(img_array, self.grid[a])
             if right is not None:
                 found_right = True
@@ -81,10 +77,6 @@ class Images:
             if under is not None:
                 found_under = True
                 self.arranged[below_coord] = (a, under)
-        if not found_right:
-            print("didn't find right")
-        if not found_under:
-            print("didn't find under")
         if not found_right or not found_under:
             raise Exception("Something went wrong")
 
@@ -97,7 +89,7 @@ class Images:
             img_array = np.delete(img_array, 0, 1)
             self.arranged[coord] = (tile_id, img_array)
 
-    def test_concat(self):
+    def count_sea_monsters(self):
         rows = []
         for i in range(12):
             test = [k for k in self.arranged if k[1] == i]
@@ -110,7 +102,6 @@ class Images:
             for j in range(0, 2):
                 matrix = np.flip(matrix, axis=1)
                 for k in range(0, 4):
-                    print("---------------------------------")
                     matrix = np.rot90(matrix)
                     as_list = matrix.tolist()
                     strings = []
@@ -120,43 +111,62 @@ class Images:
                         row = ["#" if r == 1 else "." for r in row]
                         strings.append(''.join(row))
 
-                    print("sanity check", the_sum)
                     total_hashes = 0
                     sea_monster_count = 0
-                    sea_monster_hashes = 0
                     for i in range(0, len(strings)):
                         s = strings[i]
-                        print(i, s)
+                        above = ""
+                        if i > 0:
+                            above = strings[i-1]
+                        below = ""
+                        if i < len(s)-1:
+                            below = strings[i+1]
                         total_hashes += s.count("#")
-                        asdf = """
-                                        # 
-                        #    ##    ##    ###
-                         #  #  #  #  #  #   
-                        """
-                    
-                        for g in re.finditer(r'#....##....##....###', s):
+
+                        for g in re.finditer(r'(?=(#....##....##....###))', s):
                             if i > 0 and i < len(strings)-1:
-                                above = strings[i-1]
-                                below = strings[i+1]
-                                index = g.span()[0]
-            
-                                if index < len(s)-18:
-                                    if above[index+18] == "#":
-                                        if below[index+1] == "#" and \
-                                            below[index+4] == "#" and \
-                                            below[index+7] == "#" and \
-                                            below[index+10] == "#" and \
-                                            below[index+13] == "#" and \
-                                            below[index+16] == "#":
+                                for h in re.finditer(r'(?=(.#..#..#..#..#..#...))', below):
+                                    for w in re.finditer(r'(?=(..................#.))', above):
+                                        if g.span()[0] == h.span()[0] and h.span()[0] == w.span()[0]:
                                             sea_monster_count += 1
-                                            print("it's maybe a goddamn sea monster", sea_monster_count, i, index)
-                                            
-                                            print(above[index:index+20])
-                                            print(s[index:index+20])
-                                            print(below[index:index+20])
-                                        
-                                            print("total hashes", total_hashes, "sea monster hashes", sea_monster_hashes)
-                    print("total hashes", total_hashes, "sea monsters", sea_monster_count, "answer?", total_hashes-sea_monster_count*15)
+
+                    if sea_monster_count > 0:
+                        return sea_monster_count, total_hashes
+        return 0
+
+
+def align_left_right_corner(left, right):
+    for q in range(0, 2):
+        left = np.flip(left, 1)
+        for r in range(0, 4):
+            left = np.rot90(left)
+            for i in range(0, 2):
+                right = np.flip(right, 1)
+                for j in range(0, 4):
+                    right = np.rot90(right)
+                    if np.all(np.equal(left[:, 9], right[:, 0])):
+                        return left, right
+    return None
+
+
+def align_under_top_fixed(top, bottom):
+    for i in range(0, 2):
+        bottom = np.flip(bottom, 1)
+        for j in range(0, 4):
+            bottom = np.rot90(bottom)
+            if np.all(np.equal(top[9], bottom[0])):
+                return bottom
+    return None
+
+
+def align_right_left_fixed(left, right):
+    for i in range(0, 2):
+        right = np.flip(right, 1)
+        for j in range(0, 4):
+            right = np.rot90(right)
+            if np.all(np.equal(left[:, 9], right[:, 0])):
+                return right
+    return None
 
 
 def parse(filename):
@@ -172,10 +182,11 @@ def parse(filename):
             grids[id] = []
             grid = []
         elif len(e) > 0:
-            e = [1 if e=="#" else 0 for e in e]
+            e = [1 if e == "#" else 0 for e in e]
             grid.append(list(e))
     grids[id] = np.array(grid)
     return grids
+
 
 def get_adjacents(grid):
     adjacents = {}
@@ -196,11 +207,12 @@ def get_adjacents(grid):
                             u = np.flip(u, 1)
                             for j in range(0, 4):
                                 u = np.rot90(u)
-                                if np.all(np.equal(v[9], u[0])): 
+                                if np.all(np.equal(v[9], u[0])):
                                     adjacents[k].add(n)
                                     adjacents[n].add(k)
-            
+
     return adjacents
+
 
 def get_corners(grid):
     adjacents = get_adjacents(grid)
@@ -212,6 +224,7 @@ def get_corners(grid):
             print("maybe corner", a)
             maybe_corners.add(a)
     return maybe_corners
+
 
 def test_day_twenty():
     grid = parse("Day20sample.txt")
@@ -227,54 +240,17 @@ def day_twenty():
             ans *= int(c)
         print("ans", ans)
 
+
 def day_twenty_part_two():
     adjacents = pickle.load(open("adjacents.p", "rb"))
     grid = parse("Day20.txt")
     images = Images(grid, adjacents)
     images.remove_borders()
-    images.test_concat()
-    #    ##    ##    ###
-    #1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1
-    
-    
-def align_left_right_corner(left, right):
-    # print("left", left)
-    # print("right", right)
-    for q in range(0, 2):
-        left = np.flip(left, 1)
-        for r in range(0, 4):
-            left = np.rot90(left) 
-            for i in range(0, 2):
-                right = np.flip(right, 1)
-                for j in range(0, 4):
-                    right = np.rot90(right)
-                    if np.all(np.equal(left[:,9], right[:,0])):
-                        return left, right
-    return None
+    monsters, hashes = images.count_sea_monsters()
+    print(hashes-15*monsters)
 
-def align_under_top_fixed(top, bottom):
-    # print("top", top)
-    # print("bottom", bottom)
-    for i in range(0, 2):
-        bottom = np.flip(bottom, 1)
-        for j in range(0, 4):
-            bottom = np.rot90(bottom)
-            if np.all(np.equal(top[9], bottom[0])):
-                return bottom
-    return None
 
-def align_right_left_fixed(left, right):
-    # print("top", top)
-    # print("bottom", bottom)
-    for i in range(0, 2):
-        right = np.flip(right, 1)
-        for j in range(0, 4):
-            right = np.rot90(right)
-            if np.all(np.equal(left[:,9], right[:,0])):
-                return right
-    return None
-
-if __name__=="__main__":
+if __name__ == "__main__":
     # test_day_twenty()
     # day_twenty()
     day_twenty_part_two()
