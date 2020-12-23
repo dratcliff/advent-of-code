@@ -8,7 +8,7 @@ class Cup:
 
 def init(starting_string, size):
 
-    m = [Cup(0, None) for x in range(size+1)]
+    m = [Cup(0, Cup(0, None)) for x in range(size+1)]
     for i in range(0, len(starting_string)):
         v = int(starting_string[i])
         m[v].label = v
@@ -34,7 +34,7 @@ def init(starting_string, size):
 
     return (m, size, m[first])
 
-def move(m, biggest, current):
+def move(m, biggest, current, times):
     """
     The crab picks up the three cups that are immediately clockwise of the current cup. 
     They are removed from the circle; cup spacing is adjusted as necessary to maintain the circle.
@@ -48,30 +48,31 @@ def move(m, biggest, current):
     of the destination cup. They keep the same order as when they were picked up.
     The crab selects a new current cup: the cup which is immediately clockwise of the current cup.
     """
-
-    c1 = current.clockwise_cup
-    c2 = c1.clockwise_cup
-    c3 = c2.clockwise_cup
-    current.clockwise_cup = c3.clockwise_cup
-    result = c3.clockwise_cup
-    destination = current.label - 1
-    while destination == c1.label or destination == c2.label or destination == c3.label:
-        destination -= 1
-    
-    if destination <= 0:
-        destination = biggest
-    at_destination = m[destination]
-    c3.clockwise_cup = at_destination.clockwise_cup
-    at_destination.clockwise_cup = c1
-
+    for zzz in range(times):
+        c1 = current.clockwise_cup
+        c2 = c1.clockwise_cup
+        c3 = c2.clockwise_cup
+        c4 = c3.clockwise_cup
+        current.clockwise_cup = c4
+        result = c4
+        destination = current.label - 1
+        while destination == c1.label or destination == c2.label or destination == c3.label:
+            destination -= 1
+        
+        if destination <= 0:
+            destination = biggest
+        at_destination = m[destination]
+        c3.clockwise_cup = at_destination.clockwise_cup
+        at_destination.clockwise_cup = c1
+        current = result
     return result
 
 @utils.timed
 def test_day_twenty_three():
     starting_string = "389125467"
     (m, biggest, cur) = init(starting_string, 1_000_000)
-    for i in range(0, 10_000_000):
-        cur = move(m, biggest, cur)
+    
+    cur = move(m, biggest, cur, 10_000_000)
 
     one = m[1]
     first = one.clockwise_cup
@@ -83,8 +84,7 @@ def test_day_twenty_three():
 def day_twenty_three():
     starting_string = "123487596"
     (m, biggest, cur) = init(starting_string, 1_000_000)
-    for i in range(0, 10_000_000):
-        cur = move(m, biggest, cur)
+    cur = move(m, biggest, cur, 10_000_000)
 
     one = m[1]
     first = one.clockwise_cup
