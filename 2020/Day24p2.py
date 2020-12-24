@@ -1,6 +1,10 @@
 import utils
 from collections import defaultdict
 from itertools import permutations
+import matplotlib.pyplot as plt
+from matplotlib.patches import RegularPolygon
+import numpy as np
+import time
 
 # crucial: https://math.stackexchange.com/questions/2254655/hexagon-grid-coordinate-system
 
@@ -57,7 +61,8 @@ def run(entries):
         if line[-1] == ",":
             line = line[:-1]
         lines.append(line)
-    
+
+    to_render = []    
     tiles = set()
     for line in lines:
         flipped = flip(line)
@@ -87,20 +92,67 @@ def run(entries):
             tiles.add(nb)
         for nw in next_white:
             tiles.remove(nw)
+        to_render.append(set(tiles))
 
     
-    print(len(tiles))
+    return to_render
 
 
 
 def test_day_twenty_one():
     entries = utils.file_to_string_list("Day24sample.txt")
-    run(entries)
+    tiles = run(entries)
+    print(len(tiles[-1]))
+
+def render_sample():
+    entries = utils.file_to_string_list("Day24sample.txt")
+    to_render = run(entries)
+    plt.show()
+    plt.ion()
+
+    fig, ax = plt.subplots(1)
+    ax.set_aspect('equal')
+    render(to_render[0], ax)
+    plt.pause(10)
+    for tr in to_render:
+        render(tr, ax)
 
 def day_twenty_one():
     entries = utils.file_to_string_list("Day24.txt")
-    run(entries)
+    tiles = run(entries)
+    print(len(tiles[-1]))
+
+
+def render(tiles, ax):
+    plt.cla()
+    ax.axis([-40, 40, -40, 40])
+    coord = [list(t) for t in tiles]
+    colors = [["Black"] for t in tiles]
+
+    # Horizontal cartesian coords
+    hcoord = [c[0] for c in coord]
+
+    # Vertical cartersian coords
+    vcoord = [2. * np.sin(np.radians(60)) * (c[1] - c[2]) /3. for c in coord]
+
+    # Add some coloured hexagons
+    for x, y, c in zip(hcoord, vcoord, colors):
+        color = c[0].lower()  # matplotlib understands lower case words for colours
+        hex = RegularPolygon((x, y), numVertices=6, radius=2. / 3., 
+                            orientation=np.radians(30), 
+                            facecolor=color, alpha=1.0, edgecolor='k')
+        ax.add_patch(hex)
+        # Also add a text label
+        ax.text(x, y+0.2, '', ha='center', va='center', size=20)
+
+    # Also add scatter points in hexagon centres
+    ax.scatter(hcoord, vcoord, c=[c[0].lower() for c in colors], alpha=0.5)
+    plt.draw()
+    plt.pause(0.1)
+    
+    
 
 if __name__=="__main__":
+    # render_sample()
     test_day_twenty_one()
     day_twenty_one()
