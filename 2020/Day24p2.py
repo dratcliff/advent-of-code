@@ -1,5 +1,15 @@
 import utils
 from collections import defaultdict
+from itertools import permutations
+
+# crucial: https://math.stackexchange.com/questions/2254655/hexagon-grid-coordinate-system
+
+my_perms = set()
+for p in permutations([1, 1, 1, 0, 0, 0, -1, -1, -1], 3):
+    my_perms.add(p)
+my_perms.remove((0, 0, 0))
+my_perms = set([x for x in my_perms if 0 in x])
+my_perms = set([x for x in my_perms if sum(x) == 0])
 
 def flip(line):
     x = 0 #se/nw
@@ -55,6 +65,30 @@ def run(entries):
             tiles.remove(flipped)
         else:
             tiles.add(flipped)
+        
+    for i in range(0, 100):
+        next_black = set()
+        white_adj_cts = defaultdict(set)
+        next_white = set()
+        for t in tiles:
+            black_ct = 0
+            for p in my_perms:
+                if (t[0]+p[0], t[1]+p[1], t[2]+p[2]) in tiles:
+                    black_ct += 1
+                else:
+                    white_adj_cts[(t[0]+p[0], t[1]+p[1], t[2]+p[2])].add((t[0], t[1], t[2]))
+            if black_ct == 0 or black_ct > 2:
+                next_white.add(t)
+        for k, v in white_adj_cts.items():
+            if len(v) == 2:
+                next_black.add(k)
+        
+        for nb in next_black:
+            tiles.add(nb)
+        for nw in next_white:
+            tiles.remove(nw)
+
+    
     print(len(tiles))
 
 
