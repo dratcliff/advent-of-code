@@ -4,7 +4,7 @@ import utils
 class Cup:
     def __init__(self, label, clockwise_cup):
         self.label = label
-        self.clockwise_cup = None
+        self.clockwise_cup = clockwise_cup
 
 def init(starting_string, size):
 
