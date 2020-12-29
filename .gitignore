@@ -12,3 +12,8 @@
 *.out
 
 *.swp
+*.exe
+__pycache__
+.pytest_cache
+.vscode
+venv_aoc
