@@ -1,7 +1,5 @@
 from utilaoc import file_to_strings
 
-sample = file_to_strings("sample.txt")
-actual = file_to_strings("input.txt")
+actual = file_to_strings("a.txt")
 
-print(sample)
 print(actual)
