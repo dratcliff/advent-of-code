@@ -14,7 +14,6 @@ def line_separated_file_to_2d(filename):
             record = []
             continue
         record.append(x)
-    record.append(x)
     result.append(record)
     return result
 
