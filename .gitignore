@@ -18,3 +18,4 @@ __pycache__
 .vscode
 venv_aoc
 venv
+input.txt
