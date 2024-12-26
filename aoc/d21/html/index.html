@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Grid</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 5px;
+            border: 2px solid black;
+        }
+
+        .main-grid {
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(4, 50px);
+        }
+
+        .sub-grid {
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(2, 50px);
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            border: 1px solid gray;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            user-select: none;
+        }
+
+        .cursor {
+            background-color: lightblue;
+        }
+
+        .flash {
+            background-color: yellow;
+            /* Temporary color for the flash */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Main 3x4 Grid -->
+        <div id="main-grid" class="grid main-grid"></div>
+        <!-- Three 3x2 Grids -->
+        <div class="grid sub-grid" id="sub-grid-1"></div>
+        <div class="grid sub-grid" id="sub-grid-2"></div>
+        <div class="grid sub-grid" id="sub-grid-3"></div>
+    </div>
+
+    <script>
+
+        const mainGridSymbols = [
+            ['7', '8', '9'],
+            ['4', '5', '6'],
+            ['1', '2', '3'],
+            [' ', '0', 'A']
+        ];
+        const subGridSymbols = [
+            [' ', '^', 'A'],
+            ['<', 'v', '>']
+        ];
+
+        // Helper function to create grid cells
+        function createGrid(gridElement, rows, cols) {
+            for (let i = 0; i < rows * cols; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                symbols = gridElement.classList.contains('sub-grid') ? subGridSymbols : mainGridSymbols;
+                cell.textContent = symbols[(Math.floor(i / cols)).toFixed()][(i % cols).toFixed()];
+                if (cell.textContent == 'A') {
+                    cell.classList.add('cursor');
+                }
+                gridElement.appendChild(cell);
+            }
+
+        }
+
+        // Create main and sub grids
+        const mainGrid = document.getElementById('main-grid');
+        const subGrid1 = document.getElementById('sub-grid-1');
+        const subGrid2 = document.getElementById('sub-grid-2');
+        const subGrid3 = document.getElementById('sub-grid-3');
+
+        const nextGrid = {
+            "sub-grid-3": subGrid2,
+            "sub-grid-2": subGrid1,
+            "sub-grid-1": mainGrid,
+            "main-grid": mainGrid
+        }
+
+        createGrid(mainGrid, 4, 3);  // Main grid: 4 rows, 3 columns
+        createGrid(subGrid1, 2, 3); // Sub grid 1: 2 rows, 3 columns
+        createGrid(subGrid2, 2, 3); // Sub grid 2: 2 rows, 3 columns
+        createGrid(subGrid3, 2, 3); // Sub grid 3: 2 rows, 3 columns
+
+        // Current cursor position
+        let currentGrid = subGrid3; // Start in the main grid
+        let currentIndex3 = { 'val': 2 };
+        let currentIndex2 = { 'val': 2 };
+        let currentIndex1 = { 'val': 2 };
+        let currentIndex0 = { 'val': 11 };
+
+        const indexes = {
+            "sub-grid-1": currentIndex1,
+            "sub-grid-2": currentIndex2,
+            "sub-grid-3": currentIndex3,
+            "main-grid": currentIndex0
+        }
+
+        function handleA(grid) {
+            if (grid.id == 'main-grid') {
+                return;
+            }
+            const cells = Array.from(grid.children);
+            const rows = grid.classList.contains('main-grid') ? 4 : 2;
+            const gapRow = grid.classList.contains('main-grid') ? rows - 1 : 0;
+            const cols = 3;
+            let currentIndex = indexes[grid.id].val;
+            // Calculate the new position
+            let row = Math.floor(currentIndex / cols);
+            let col = currentIndex % cols;
+
+            let action = cells[currentIndex].textContent;
+            switch (action) {
+                case 'A':
+                    handleA(nextGrid[grid.id]);
+                    break;
+                case '<':
+                    var ng = nextGrid[grid.id];
+                    var ni = indexes[ng.id].val;
+                    var nextCells = Array.from(ng.children);
+                    var nrow = Math.floor(ni / cols);
+                    var ncol = ni % cols;
+                    var nrows = ng.classList.contains('main-grid') ? 4 : 2;
+                    var nGapRow = ng.classList.contains('main-grid') ? nrows - 1 : 0;
+                    if ((nrow == nGapRow && ncol != 1) || (nrow != nGapRow && ncol != 0)) {
+                        nextCells[ni].classList.remove('cursor')
+                        ni -= 1;
+                        nextCells[ni].classList.add('cursor');
+                        indexes[ng.id].val -= 1;
+                    }
+                    break;
+                case '>':
+                    var ng = nextGrid[grid.id];
+                    var ni = indexes[ng.id].val;
+                    var nextCells = Array.from(ng.children);
+                    var nrow = Math.floor(ni / cols);
+                    var ncol = ni % cols;
+                    if (ncol != cols - 1) {
+                        nextCells[ni].classList.remove('cursor')
+                        ni += 1;
+                        nextCells[ni].classList.add('cursor');
+                        indexes[ng.id].val += 1;
+                    }
+                    break;
+                case 'v':
+                    var ng = nextGrid[grid.id];
+                    var ni = indexes[ng.id].val;
+                    var nextCells = Array.from(ng.children);
+                    var nrow = Math.floor(ni / cols);
+                    var ncol = ni % cols;
+                    if (nrow != rows - 1) {
+                        nextCells[ni].classList.remove('cursor')
+                        ni += cols;
+                        nextCells[ni].classList.add('cursor');
+                        indexes[ng.id].val += cols;
+                    }
+                    break;
+                case '^':
+                    var ng = nextGrid[grid.id];
+                    var ni = indexes[ng.id].val;
+                    var nextCells = Array.from(ng.children);
+                    var nrow = Math.floor(ni / cols);
+                    var ncol = ni % cols;
+                    if (nrow != 0) {
+                        nextCells[ni].classList.remove('cursor')
+                        ni -= cols;
+                        nextCells[ni].classList.add('cursor');
+                        indexes[ng.id].val -= cols;
+                    }
+                    break;
+            }
+        }
+
+        // Move the cursor
+        function moveCursor(direction) {
+            const cells = Array.from(currentGrid.children);
+            const rows = currentGrid.classList.contains('main-grid') ? 4 : 2;
+            const cols = 3;
+
+            // Remove the current cursor
+            cells[currentIndex3.val].classList.remove('cursor');
+
+            // Calculate the new position
+            let row = Math.floor(currentIndex3.val / cols);
+            let col = currentIndex3.val % cols;
+
+            switch (direction) {
+                case 'ArrowUp':
+                    row = (row - 1 + rows) % rows;
+                    break;
+                case 'ArrowDown':
+                    row = (row + 1) % rows;
+                    break;
+                case 'ArrowLeft':
+                    col = (col - 1 + cols) % cols;
+                    break;
+                case 'ArrowRight':
+                    col = (col + 1) % cols;
+                    break;
+                case 'a':
+                    cells[currentIndex3.val].classList.add('flash');
+                    var doCall = function (i) {
+                        setTimeout(() => {
+                            cells[i].classList.remove('flash');
+                        }, 300);
+                    }
+                    doCall(currentIndex3.val);
+                    handleA(currentGrid);
+            }
+
+            currentIndex3.val = row * cols + col;
+
+            // Highlight the new cursor position
+            cells[currentIndex3.val].classList.add('cursor');
+        }
+
+        // Handle keyboard events
+        document.addEventListener('keydown', (event) => {
+            const directionKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'a'];
+            if (directionKeys.includes(event.key)) {
+                moveCursor(event.key);
+            }
+        });
+    </script>
+</body>
+
+</html>
